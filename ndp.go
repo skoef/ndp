@@ -58,6 +58,17 @@ func ParseNeighborAdvertisement(b []byte) (*NeighborAdvertisement, error) {
        TargetAddress: b[8:24],
     }
 
+    // parse flags
+    if b[4] & 0x80 > 0 {
+        p.Router = true
+    }
+    if b[4] & 0x40 > 0 {
+        p.Solicited = true
+    }
+    if b[4] & 0x20 > 0 {
+        p.Override = true
+    }
+
     return p, nil
 }
 
