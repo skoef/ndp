@@ -4,7 +4,6 @@ import (
     "encoding/binary"
     "errors"
     "fmt"
-    "net"
 )
 
 type ICMPOptionType int
@@ -20,11 +19,13 @@ const (
 )
 
 var icmpOptionTypes = map[ICMPOptionType]string {
+    // https://tools.ietf.org/html/rfc4861#section-4.6
     1:  "Source Link Layer Address",
     2:  "Target Link Layer Address",
     3:  "Prefix Information",
     4:  "Redirected Header",
     5:  "MTU",
+    // https://tools.ietf.org/html/rfc6106#section-5
     25: "Recursive DNS Server",
     31: "DNS Search List",
 }
@@ -57,75 +58,15 @@ func ParseRouterAdvertisement(b []byte) (*RouterAdvertisement, error) {
     }
 
     if len(b) > 16 {
-        fmt.Printf("RA has options: %d\n", len(b) - 16)
+        fmt.Printf("RA has options: %d bytes\n", len(b) - 16)
 
-        b = b[16:]
-OptionParser:
-        for {
-            if len(b) < 8 {
-                fmt.Printf("options has only %d length left, done parsing\n", len(b))
-                break
-            }
-
-            optionType := ICMPOptionType(b[0])
-            optionLength := uint8(b[1])
-
-            switch optionType {
-                case ICMPOptionTypeSourceLinkLayerAddress:
-                    if optionLength != 1 {
-                        fmt.Printf("incorrect length of %d\n", optionLength)
-                        continue
-                    }
-
-                    var mac net.HardwareAddr = b[2:8]
-                    fmt.Printf("source address: %s\n", mac.String())
-
-                    b = b[8:]
-
-                case ICMPOptionTypeTargetLinkLayerAddress:
-                    if optionLength != 1 {
-                        fmt.Printf("incorrect length of %d\n", optionLength)
-                        continue
-                    }
-
-                    var mac net.HardwareAddr = b[2:8]
-                    fmt.Printf("target address: %s\n", mac.String())
-
-                    b = b[8:]
-
-                case ICMPOptionTypePrefixInformation:
-                    if optionLength != 4 {
-                        fmt.Printf("incorrect length of %d\n", optionLength)
-                        continue
-                    }
-
-                    prefixLength := uint8(b[2])
-                    onLink := (b[3] & 0x80 > 0)
-                    AAC := (b[3] & 0x40 > 0)
-                    validLifetime := binary.BigEndian.Uint32(b[4:8])
-                    preferredLifetime := binary.BigEndian.Uint32(b[8:12])
-                    prefix := net.IP(b[16:32])
-                    fmt.Printf("prefix: %s/%d, onlink: %t, aac: %t, valid: %d, preferred: %d\n", prefix.String(), prefixLength, onLink, AAC, validLifetime, preferredLifetime)
-
-                    b = b[32:]
-
-                default:
-                    fmt.Printf("unhandled icmp option %d\n", optionType)
-                    switch optionLength {
-                        case 1:
-                            b = b[8:]
-                        case 2:
-                            b = b[16:]
-                        case 5:
-                            b = b[40:]
-                        default:
-                            fmt.Printf("unhandled option length: %d\n", optionLength)
-                            break OptionParser
-                    }
-            }
-
-            fmt.Printf("found option %s (%d) with length %d\n", icmpOptionTypes[optionType], optionType, optionLength)
+        options, err := ParseOptions(b[16:])
+        if err != nil {
+            fmt.Printf("failed parsing options")
+        } else {
+            p.Options = options
         }
+
     }
 
     return p, nil
@@ -163,6 +104,17 @@ func ParseNeighborAdvertisement(b []byte) (*NeighborAdvertisement, error) {
     }
     if b[4] & 0x20 > 0 {
         p.Override = true
+    }
+
+    if len(b) > 24 {
+        fmt.Printf("NA has options: %d bytes\n", len(b) - 24)
+
+        options, err := ParseOptions(b[24:])
+        if err != nil {
+            fmt.Printf("failed parsing options")
+        } else {
+            p.Options = options
+        }
     }
 
     return p, nil

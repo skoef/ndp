@@ -11,6 +11,7 @@ type RouterAdvertisement struct {
     RouterLifeTime uint16
     ReachableTime  uint32
     RetransTimer   uint32
+    Options        []ICMPOption
 }
 
 func (p *RouterAdvertisement) Len(proto int) int {
