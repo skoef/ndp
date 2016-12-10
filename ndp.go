@@ -6,30 +6,6 @@ import (
     "fmt"
 )
 
-type ICMPOptionType int
-
-const (
-    ICMPOptionTypeSourceLinkLayerAddress ICMPOptionType = 1
-    ICMPOptionTypeTargetLinkLayerAddress ICMPOptionType = 2
-    ICMPOptionTypePrefixInformation      ICMPOptionType = 3
-    ICMPOptionTypeRedirectedHeader       ICMPOptionType = 4
-    ICMPOptionTypeMTU                    ICMPOptionType = 5
-    ICMPOptionTypeRecursiveDNSServer     ICMPOptionType = 25
-    ICMPOptionTypeDNSSearchList          ICMPOptionType = 31
-)
-
-var icmpOptionTypes = map[ICMPOptionType]string {
-    // https://tools.ietf.org/html/rfc4861#section-4.6
-    1:  "Source Link Layer Address",
-    2:  "Target Link Layer Address",
-    3:  "Prefix Information",
-    4:  "Redirected Header",
-    5:  "MTU",
-    // https://tools.ietf.org/html/rfc6106#section-5
-    25: "Recursive DNS Server",
-    31: "DNS Search List",
-}
-
 func ParseRouterAdvertisement(b []byte) (*RouterAdvertisement, error) {
     if len(b) < 4 {
         return nil, errors.New("message too short")
