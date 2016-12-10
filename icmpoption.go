@@ -44,22 +44,22 @@ func (o *ICMPOption) Marshal(proto int) ([]byte, error) {
 func ParseOptions(b []byte) ([]ICMPOption, error) {
     // empty container
     var icmpOptions = []ICMPOption {}
-OptionParser:
-	for {
-		if len(b) < 8 {
-			fmt.Printf("options has only %d length left, done parsing\n", len(b))
-			break
-		}
 
-		optionType := ICMPOptionType(b[0])
-		optionLength := uint8(b[1])
+    for {
+        if len(b) < 8 {
+            fmt.Printf("options has only %d length left, done parsing\n", len(b))
+            break
+        }
 
-		switch optionType {
-			case ICMPOptionTypeSourceLinkLayerAddress:
-				if optionLength != 1 {
-					fmt.Printf("incorrect length of %d\n", optionLength)
-					continue
-				}
+        optionType := ICMPOptionType(b[0])
+        optionLength := uint8(b[1])
+
+        switch optionType {
+            case ICMPOptionTypeSourceLinkLayerAddress:
+                if optionLength != 1 {
+                    fmt.Printf("incorrect length of %d\n", optionLength)
+                    goto cleanup
+                }
 
                 currentOption := &ICMPOptionSourceLinkLayerAddress{
                     ICMPOption:       ICMPOption{
@@ -69,16 +69,13 @@ OptionParser:
                     LinkLayerAddress: b[2:8],
                 }
 
-				fmt.Printf("source address: %s\n", currentOption.LinkLayerAddress.String())
+                fmt.Printf("source address: %s\n", currentOption.LinkLayerAddress.String())
 
-                // chop option bytes off
-				b = b[8:]
-
-			case ICMPOptionTypeTargetLinkLayerAddress:
-				if optionLength != 1 {
-					fmt.Printf("incorrect length of %d\n", optionLength)
-					continue
-				}
+            case ICMPOptionTypeTargetLinkLayerAddress:
+                if optionLength != 1 {
+                    fmt.Printf("incorrect length of %d\n", optionLength)
+                    goto cleanup
+                }
 
                 currentOption := &ICMPOptionTargetLinkLayerAddress{
                     ICMPOption:       ICMPOption{
@@ -88,16 +85,13 @@ OptionParser:
                     LinkLayerAddress: b[2:8],
                 }
 
-				fmt.Printf("target address: %s\n", currentOption.LinkLayerAddress.String())
+                fmt.Printf("target address: %s\n", currentOption.LinkLayerAddress.String())
 
-                // chop options bytes off
-				b = b[8:]
-
-			case ICMPOptionTypePrefixInformation:
-				if optionLength != 4 {
-					fmt.Printf("incorrect length of %d\n", optionLength)
-					continue
-				}
+            case ICMPOptionTypePrefixInformation:
+                if optionLength != 4 {
+                    fmt.Printf("incorrect length of %d\n", optionLength)
+                    goto cleanup
+                }
 
                 currentOption := &ICMPOptionPrefixInformation{
                     ICMPOption:        ICMPOption{
@@ -112,26 +106,16 @@ OptionParser:
                     Prefix:            net.IP(b[16:32]),
                 }
 
-				fmt.Printf("prefix: %s/%d, onlink: %t, auto: %t, valid: %d, preferred: %d\n", currentOption.Prefix.String(), currentOption.PrefixLength, currentOption.OnLink, currentOption.Auto, currentOption.ValidLifetime, currentOption.PreferredLifetime)
+                fmt.Printf("prefix: %s/%d, onlink: %t, auto: %t, valid: %d, preferred: %d\n", currentOption.Prefix.String(), currentOption.PrefixLength, currentOption.OnLink, currentOption.Auto, currentOption.ValidLifetime, currentOption.PreferredLifetime)
 
-                // chop options bytes off
-				b = b[32:]
+            default:
+                fmt.Printf("unhandled icmp option %d\n", optionType)
+        }
 
-			default:
-				fmt.Printf("unhandled icmp option %d\n", optionType)
-				switch optionLength {
-					case 1:
-						b = b[8:]
-					case 2:
-						b = b[16:]
-					case 5:
-						b = b[40:]
-					default:
-						fmt.Printf("unhandled option length: %d\n", optionLength)
-						break OptionParser
-				}
-		}
+cleanup:
+        // chop off bytes for this option
+        b = b[(optionLength * 8):]
+    }
 
-	}
     return icmpOptions, nil
 }
