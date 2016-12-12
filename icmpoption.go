@@ -58,6 +58,13 @@ type ICMPOptionPrefixInformation struct {
     Prefix            net.IP
 }
 
+// https://tools.ietf.org/html/rfc6106#section-5
+type ICMPOptionRecursiveDNSServer struct {
+    ICMPOption
+    Lifetime uint32
+    Servers  []net.IP
+}
+
 func (o *ICMPOption) Marshal(proto int) ([]byte, error) {
     b := make([]byte, 8)
     b[0] ^= byte(o.Type)
@@ -131,6 +138,26 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
                 }
 
                 fmt.Printf("prefix: %s/%d, onlink: %t, auto: %t, valid: %d, preferred: %d\n", currentOption.Prefix.String(), currentOption.PrefixLength, currentOption.OnLink, currentOption.Auto, currentOption.ValidLifetime, currentOption.PreferredLifetime)
+
+            case ICMPOptionTypeRecursiveDNSServer:
+                if optionLength < 3 {
+                    fmt.Printf("incorrect length of %d for option 25\n", optionLength)
+                    goto cleanup
+                }
+
+                currentOption := &ICMPOptionRecursiveDNSServer{
+                    ICMPOption: ICMPOption{
+                        Type:   optionType,
+                        Length: optionLength,
+                    },
+                    Lifetime:   binary.BigEndian.Uint32(b[4:8]),
+                }
+
+                for i := 8; i < (int(optionLength) * 8); i += 16 {
+                    currentOption.Servers = append(currentOption.Servers, net.IP(b[i:(i+16)]))
+                }
+
+                fmt.Printf("lifetime: %d, servers: %s\n", currentOption.Lifetime, currentOption.Servers)
 
             default:
                 fmt.Printf("unhandled icmp option %d\n", optionType)
