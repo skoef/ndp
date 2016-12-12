@@ -7,6 +7,7 @@ import (
 // https://tools.ietf.org/html/rfc4861#section-4.3
 type NeighborSolicitation struct {
     TargetAddress net.IP
+    Options       []ICMPOption
 }
 
 func (p *NeighborSolicitation) Len(proto int) int {

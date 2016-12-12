@@ -31,25 +31,28 @@ var icmpOptionTypes = map[ICMPOptionType]string {
 }
 
 // https://tools.ietf.org/html/rfc4861#section-4.6
-type ICMPOption struct {
-    Type   ICMPOptionType
-    Length uint8
+type ICMPOption interface {
+    Len()        uint8
+    Marshal()    ([]byte, error)
 }
 
 // https://tools.ietf.org/html/rfc4861#section-4.6.1
 type ICMPOptionSourceLinkLayerAddress struct {
-    ICMPOption
+    Type             ICMPOptionType
+    Length           uint8
     LinkLayerAddress net.HardwareAddr
 }
 
 type ICMPOptionTargetLinkLayerAddress struct {
-    ICMPOption
+    Type             ICMPOptionType
+    Length           uint8
     LinkLayerAddress net.HardwareAddr
 }
 
 // https://tools.ietf.org/html/rfc4861#section-4.6.2
 type ICMPOptionPrefixInformation struct {
-    ICMPOption
+    Type              ICMPOptionType
+    Length            uint8
     PrefixLength      uint8
     OnLink            bool
     Auto              bool
@@ -60,16 +63,10 @@ type ICMPOptionPrefixInformation struct {
 
 // https://tools.ietf.org/html/rfc6106#section-5
 type ICMPOptionRecursiveDNSServer struct {
-    ICMPOption
+    Type     ICMPOptionType
+    Length   uint8
     Lifetime uint32
     Servers  []net.IP
-}
-
-func (o *ICMPOption) Marshal(proto int) ([]byte, error) {
-    b := make([]byte, 8)
-    b[0] ^= byte(o.Type)
-    b[1] ^= byte(o.Length)
-    return b, nil
 }
 
 func ParseOptions(b []byte) ([]ICMPOption, error) {
@@ -84,6 +81,7 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
 
         optionType := ICMPOptionType(b[0])
         optionLength := uint8(b[1])
+        var currentOption ICMPOption
 
         switch optionType {
             case ICMPOptionTypeSourceLinkLayerAddress:
@@ -93,10 +91,8 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
                 }
 
                 currentOption := &ICMPOptionSourceLinkLayerAddress{
-                    ICMPOption:       ICMPOption{
-                        Type:   optionType,
-                        Length: optionLength,
-                    },
+                    Type:             optionType,
+                    Length:           optionLength,
                     LinkLayerAddress: b[2:8],
                 }
 
@@ -109,10 +105,8 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
                 }
 
                 currentOption := &ICMPOptionTargetLinkLayerAddress{
-                    ICMPOption:       ICMPOption{
-                        Type:   optionType,
-                        Length: optionLength,
-                    },
+                    Type:             optionType,
+                    Length:           optionLength,
                     LinkLayerAddress: b[2:8],
                 }
 
@@ -125,10 +119,8 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
                 }
 
                 currentOption := &ICMPOptionPrefixInformation{
-                    ICMPOption:        ICMPOption{
-                        Type:   optionType,
-                        Length: optionLength,
-                    },
+                    Type:              optionType,
+                    Length:            optionLength,
                     PrefixLength:      uint8(b[2]),
                     OnLink:            (b[3] & 0x80 > 0),
                     Auto:              (b[3] & 0x40 > 0),
@@ -146,10 +138,8 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
                 }
 
                 currentOption := &ICMPOptionRecursiveDNSServer{
-                    ICMPOption: ICMPOption{
-                        Type:   optionType,
-                        Length: optionLength,
-                    },
+                    Type:       optionType,
+                    Length:     optionLength,
                     Lifetime:   binary.BigEndian.Uint32(b[4:8]),
                 }
 
@@ -161,7 +151,11 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
 
             default:
                 fmt.Printf("unhandled icmp option: %s (%d) (len: %d)\n", icmpOptionTypes[optionType], optionType, optionLength)
+                goto cleanup
         }
+
+        // add new option to array of options
+        icmpOptions = append(icmpOptions, currentOption)
 
 cleanup:
         // chop off bytes for this option

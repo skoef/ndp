@@ -1,7 +1,6 @@
 package ndp
 
 import (
-    //"encoding/binary"
     "net"
 )
 

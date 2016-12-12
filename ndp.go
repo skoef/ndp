@@ -38,11 +38,10 @@ func ParseRouterAdvertisement(b []byte) (*RouterAdvertisement, error) {
 
         options, err := ParseOptions(b[16:])
         if err != nil {
-            fmt.Printf("failed parsing options")
+            fmt.Errorf("failed parsing options: %s", err)
         } else {
             p.Options = options
         }
-
     }
 
     return p, nil
@@ -54,8 +53,17 @@ func ParseRouterSolicitation(b []byte) (*RouterSolicitation, error) {
     }
 
     // first 4 bytes is ICMPv6 header
-    p := &RouterSolicitation{
+    p := &RouterSolicitation{}
 
+    if len(b) > 8 {
+        fmt.Printf("RS has options: %d bytes\n", len(b) - 8)
+
+        options, err := ParseOptions(b[8:])
+        if err != nil {
+            fmt.Errorf("failed parsing options: %s", err)
+        } else {
+            p.Options = options
+        }
     }
 
     return p, nil
@@ -104,6 +112,17 @@ func ParseNeighborSolicitation(b []byte) (*NeighborSolicitation, error) {
     // first 4 bytes is ICMPv6 header
     p := &NeighborSolicitation{
        TargetAddress: b[8:24],
+    }
+
+    if len(b) > 24 {
+        fmt.Printf("NS has options: %d bytes\n", len(b) - 24)
+
+        options, err := ParseOptions(b[24:])
+        if err != nil {
+            fmt.Printf("failed parsing options")
+        } else {
+            p.Options = options
+        }
     }
 
     return p, nil

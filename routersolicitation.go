@@ -1,10 +1,9 @@
 package ndp
 
-//import "encoding/binary"
-
 // https://tools.ietf.org/html/rfc4861#section-4.1
 type RouterSolicitation struct {
     // Reserved uint32
+    Options []ICMPOption
 }
 
 func (p *RouterSolicitation) Len(proto int) int {
