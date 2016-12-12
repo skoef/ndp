@@ -1,9 +1,9 @@
 package ndp
 
 import (
-"fmt"
-"net"
-"encoding/binary"
+    "fmt"
+    "net"
+    "encoding/binary"
 )
 
 type ICMPOptionType int
@@ -77,8 +77,8 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
     var icmpOptions = []ICMPOption {}
 
     for {
+        // left over bytes are less than minimum option length
         if len(b) < 8 {
-            fmt.Printf("options has only %d length left, done parsing\n", len(b))
             break
         }
 
@@ -160,7 +160,7 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
                 fmt.Printf("lifetime: %d, servers: %s\n", currentOption.Lifetime, currentOption.Servers)
 
             default:
-                fmt.Printf("unhandled icmp option %d\n", optionType)
+                fmt.Printf("unhandled icmp option: %s (%d) (len: %d)\n", icmpOptionTypes[optionType], optionType, optionLength)
         }
 
 cleanup:
