@@ -118,7 +118,7 @@ func (o *ICMPOptionRecursiveDNSServer) Len() uint8 {
         return 0
     }
 
-    return 2 + uint8(len(o.Servers))
+    return 1 + uint8(len(o.Servers) * 2)
 }
 
 // https://tools.ietf.org/html/rfc6106#section-5.2
@@ -135,7 +135,7 @@ func (o *ICMPOptionDNSSearchList) Len() uint8 {
         return 0
     }
 
-    return 2 + uint8(len(o.DomainNames))
+    return 1 + uint8(len(o.DomainNames) * 3)
 }
 
 func parseOptions(b []byte) ([]ICMPOption, error) {
