@@ -52,6 +52,12 @@ func (o *ICMPOptionSourceLinkLayerAddress) Len() uint8 {
     return 1
 }
 
+// Marshal implements the Marshal method of ICMPOption interface.
+func (o *ICMPOptionSourceLinkLayerAddress) Marshal() ([]byte, error) {
+    // TODO: implement
+    return nil, nil
+}
+
 type ICMPOptionTargetLinkLayerAddress struct {
     Type             ICMPOptionType
     Length           uint8
@@ -65,6 +71,12 @@ func (o *ICMPOptionTargetLinkLayerAddress) Len() uint8 {
     }
 
     return 1
+}
+
+// Marshal implements the Marshal method of ICMPOption interface.
+func (o *ICMPOptionTargetLinkLayerAddress) Marshal() ([]byte, error) {
+    // TODO : implement
+    return nil, nil
 }
 
 // https://tools.ietf.org/html/rfc4861#section-4.6.2
@@ -88,6 +100,12 @@ func (o *ICMPOptionPrefixInformation) Len() uint8 {
     return 4
 }
 
+// Marshal implements the Marshal method of ICMPOption interface.
+func (o *ICMPOptionPrefixInformation) Marshal() ([]byte, error) {
+    // TODO: implement
+    return nil, nil
+}
+
 // https://tools.ietf.org/html/rfc4861#section-4.6.4
 type ICMPOptionMTU struct {
     Type   ICMPOptionType
@@ -102,6 +120,12 @@ func (o *ICMPOptionMTU) Len() uint8 {
     }
 
     return 1
+}
+
+// Marshal implements the Marshal method of ICMPOption interface.
+func (o *ICMPOptionMTU) Marshal() ([]byte, error) {
+    // TODO: implement
+    return nil, nil
 }
 
 // https://tools.ietf.org/html/rfc6106#section-5.1
@@ -121,6 +145,12 @@ func (o *ICMPOptionRecursiveDNSServer) Len() uint8 {
     return 1 + uint8(len(o.Servers) * 2)
 }
 
+// Marshal implements the Marshal method of ICMPOption interface.
+func (o *ICMPOptionRecursiveDNSServer) Marshal() ([]byte, error) {
+    // TODO: implement
+    return nil, nil
+}
+
 // https://tools.ietf.org/html/rfc6106#section-5.2
 type ICMPOptionDNSSearchList struct {
     Type        ICMPOptionType
@@ -136,6 +166,12 @@ func (o *ICMPOptionDNSSearchList) Len() uint8 {
     }
 
     return 1 + uint8(len(o.DomainNames) * 3)
+}
+
+// Marshal implements the Marshal method of ICMPOption interface.
+func (o *ICMPOptionDNSSearchList) Marshal() ([]byte, error) {
+    // TODO: implement
+    return nil, nil
 }
 
 func parseOptions(b []byte) ([]ICMPOption, error) {
