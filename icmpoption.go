@@ -36,11 +36,20 @@ type ICMPOption interface {
     Marshal()    ([]byte, error)
 }
 
+// Properties zijn lowercase want die we willen we niet 'public' hebben
+type ICMPOptionBase struct {
+    optionType  ICMPOptionType
+    length      uint8
+}
+
+func (o *ICMPOptionBase) Type() ICMPOptionType {
+    return o.optionType
+}
+
 // https://tools.ietf.org/html/rfc4861#section-4.6.1
 type ICMPOptionSourceLinkLayerAddress struct {
-    Type             ICMPOptionType
-    Length           uint8
-    LinkLayerAddress net.HardwareAddr
+    *ICMPOptionBase
+    linkLayerAddress net.HardwareAddr
 }
 
 // Len implements the Len method of ICMPOption interface.
@@ -59,9 +68,8 @@ func (o *ICMPOptionSourceLinkLayerAddress) Marshal() ([]byte, error) {
 }
 
 type ICMPOptionTargetLinkLayerAddress struct {
-    Type             ICMPOptionType
-    Length           uint8
-    LinkLayerAddress net.HardwareAddr
+    *ICMPOptionBase
+    linkLayerAddress net.HardwareAddr
 }
 
 // Len implements the Len method of ICMPOption interface.
@@ -81,8 +89,7 @@ func (o *ICMPOptionTargetLinkLayerAddress) Marshal() ([]byte, error) {
 
 // https://tools.ietf.org/html/rfc4861#section-4.6.2
 type ICMPOptionPrefixInformation struct {
-    Type              ICMPOptionType
-    Length            uint8
+    *ICMPOptionBase
     PrefixLength      uint8
     OnLink            bool
     Auto              bool
@@ -108,8 +115,7 @@ func (o *ICMPOptionPrefixInformation) Marshal() ([]byte, error) {
 
 // https://tools.ietf.org/html/rfc4861#section-4.6.4
 type ICMPOptionMTU struct {
-    Type   ICMPOptionType
-    Length uint8
+    *ICMPOptionBase
     MTU    uint32
 }
 
@@ -130,8 +136,7 @@ func (o *ICMPOptionMTU) Marshal() ([]byte, error) {
 
 // https://tools.ietf.org/html/rfc6106#section-5.1
 type ICMPOptionRecursiveDNSServer struct {
-    Type     ICMPOptionType
-    Length   uint8
+    *ICMPOptionBase
     Lifetime uint32
     Servers  []net.IP
 }
@@ -153,8 +158,7 @@ func (o *ICMPOptionRecursiveDNSServer) Marshal() ([]byte, error) {
 
 // https://tools.ietf.org/html/rfc6106#section-5.2
 type ICMPOptionDNSSearchList struct {
-    Type        ICMPOptionType
-    Length      uint8
+    *ICMPOptionBase
     Lifetime    uint32
     DomainNames []string
 }
@@ -194,43 +198,37 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
                     return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
-                currentOption := &ICMPOptionSourceLinkLayerAddress{
-                    Type:             optionType,
-                    Length:           optionLength,
-                    LinkLayerAddress: b[2:8],
+                currentOption = &ICMPOptionSourceLinkLayerAddress{
+                    ICMPOptionBase: &ICMPOptionBase{
+                        optionType: optionType,
+                        length:     optionLength,
+                    },
+                    linkLayerAddress: b[2:8],
                 }
-
-                if optionLength != currentOption.Len() {
-                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
-                }
-
-                fmt.Printf("source address: %s\n", currentOption.LinkLayerAddress.String())
 
             case ICMPOptionTypeTargetLinkLayerAddress:
                 if optionLength != 1 {
                     return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
-                currentOption := &ICMPOptionTargetLinkLayerAddress{
-                    Type:             optionType,
-                    Length:           optionLength,
-                    LinkLayerAddress: b[2:8],
+                currentOption = &ICMPOptionTargetLinkLayerAddress{
+                    ICMPOptionBase: &ICMPOptionBase{
+                        optionType: optionType,
+                        length:     optionLength,
+                    },
+                    linkLayerAddress: b[2:8],
                 }
-
-                if optionLength != currentOption.Len() {
-                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
-                }
-
-                fmt.Printf("target address: %s\n", currentOption.LinkLayerAddress.String())
 
             case ICMPOptionTypePrefixInformation:
                 if optionLength != 4 {
                     return nil, fmt.Errorf("option %s (%d) too short: %d should be 4", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
-                currentOption := &ICMPOptionPrefixInformation{
-                    Type:              optionType,
-                    Length:            optionLength,
+                currentOption = &ICMPOptionPrefixInformation{
+                    ICMPOptionBase: &ICMPOptionBase{
+                        optionType: optionType,
+                        length:     optionLength,
+                    },
                     PrefixLength:      uint8(b[2]),
                     OnLink:            (b[3] & 0x80 > 0),
                     Auto:              (b[3] & 0x40 > 0),
@@ -239,74 +237,65 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
                     Prefix:            net.IP(b[16:32]),
                 }
 
-                if optionLength != currentOption.Len() {
-                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
-                }
-
-
-                fmt.Printf("prefix: %s/%d, onlink: %t, auto: %t, valid: %d, preferred: %d\n", currentOption.Prefix.String(), currentOption.PrefixLength, currentOption.OnLink, currentOption.Auto, currentOption.ValidLifetime, currentOption.PreferredLifetime)
-
             case ICMPOptionTypeMTU:
                 if optionLength != 1 {
                     return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
-                currentOption := &ICMPOptionMTU{
-                    Type:   optionType,
-                    Length: optionLength,
-                    MTU:    binary.BigEndian.Uint32(b[4:8]),
+                currentOption = &ICMPOptionMTU{
+                    ICMPOptionBase: &ICMPOptionBase{
+                        optionType: optionType,
+                        length:     optionLength,
+                    },
+                    MTU: binary.BigEndian.Uint32(b[4:8]),
                 }
-
-                if optionLength != currentOption.Len() {
-                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
-                }
-
-                fmt.Printf("MTU: %d\n", currentOption.MTU)
 
             case ICMPOptionTypeRecursiveDNSServer:
                 if optionLength < 3 {
                     return nil, fmt.Errorf("option %s (%d) too short: %d should at least be 3", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
-                currentOption := &ICMPOptionRecursiveDNSServer{
-                    Type:       optionType,
-                    Length:     optionLength,
-                    Lifetime:   binary.BigEndian.Uint32(b[4:8]),
+                currentOption = &ICMPOptionRecursiveDNSServer{
+                    ICMPOptionBase: &ICMPOptionBase{
+                        optionType: optionType,
+                        length:     optionLength,
+                    },
+                    Lifetime: binary.BigEndian.Uint32(b[4:8]),
                 }
 
+                var servers []net.IP
                 for i := 8; i < (int(optionLength) * 8); i += 16 {
-                    currentOption.Servers = append(currentOption.Servers, net.IP(b[i:(i+16)]))
+                    servers = append(servers, net.IP(b[i:(i+16)]))
                 }
 
-                if optionLength != currentOption.Len() {
-                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
-                }
-
-                fmt.Printf("lifetime: %d, servers: %s\n", currentOption.Lifetime, currentOption.Servers)
+                currentOption.(*ICMPOptionRecursiveDNSServer).Servers = servers
 
             case ICMPOptionTypeDNSSearchList:
                 if optionLength < 4 {
                     return nil, fmt.Errorf("option %s (%d) too short: %d should at least be 4", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
-                currentOption := &ICMPOptionDNSSearchList{
-                    Type:     optionType,
-                    Length:   optionLength,
+                currentOption = &ICMPOptionDNSSearchList{
+                    ICMPOptionBase: &ICMPOptionBase{
+                        optionType: optionType,
+                        length:     optionLength,
+                    },
                     Lifetime: binary.BigEndian.Uint32(b[4:8]),
                 }
 
+                var domainNames []string
                 for i := 8; i <(int(optionLength) * 8); i += 24 {
-                    currentOption.DomainNames = append(currentOption.DomainNames, absDomainName(b[i:(i+24)]))
+                    domainNames = append(domainNames, absDomainName(b[i:(i+24)]))
                 }
 
-                if optionLength != currentOption.Len() {
-                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
-                }
-
-                fmt.Printf("lifetime: %d, domains: %s\n", currentOption.Lifetime, currentOption.DomainNames)
+                currentOption.(*ICMPOptionDNSSearchList).DomainNames = domainNames
 
             default:
                 return nil, fmt.Errorf("unhandled ICMPv6 option type %d", optionType)
+        }
+
+        if optionLength != currentOption.Len() {
+            return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
         }
 
         // add new option to array of options
