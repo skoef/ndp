@@ -43,10 +43,28 @@ type ICMPOptionSourceLinkLayerAddress struct {
     LinkLayerAddress net.HardwareAddr
 }
 
+// Len implements the Len method of ICMPOption interface.
+func (o *ICMPOptionSourceLinkLayerAddress) Len() uint8 {
+    if o == nil {
+        return 0
+    }
+
+    return 1
+}
+
 type ICMPOptionTargetLinkLayerAddress struct {
     Type             ICMPOptionType
     Length           uint8
     LinkLayerAddress net.HardwareAddr
+}
+
+// Len implements the Len method of ICMPOption interface.
+func (o *ICMPOptionTargetLinkLayerAddress) Len() uint8 {
+    if o == nil {
+        return 0
+    }
+
+    return 1
 }
 
 // https://tools.ietf.org/html/rfc4861#section-4.6.2
@@ -61,11 +79,29 @@ type ICMPOptionPrefixInformation struct {
     Prefix            net.IP
 }
 
+// Len implements the Len method of ICMPOption interface.
+func (o *ICMPOptionPrefixInformation) Len() uint8 {
+    if o == nil {
+        return 0
+    }
+
+    return 4
+}
+
 // https://tools.ietf.org/html/rfc4861#section-4.6.4
 type ICMPOptionMTU struct {
     Type   ICMPOptionType
     Length uint8
     MTU    uint32
+}
+
+// Len implements the Len method of ICMPOption interface.
+func (o *ICMPOptionMTU) Len() uint8 {
+    if o == nil {
+        return 0
+    }
+
+    return 1
 }
 
 // https://tools.ietf.org/html/rfc6106#section-5.1
@@ -76,12 +112,30 @@ type ICMPOptionRecursiveDNSServer struct {
     Servers  []net.IP
 }
 
+// Len implements the Len method of ICMPOption interface.
+func (o *ICMPOptionRecursiveDNSServer) Len() uint8 {
+    if o == nil {
+        return 0
+    }
+
+    return 2 + uint8(len(o.Servers))
+}
+
 // https://tools.ietf.org/html/rfc6106#section-5.2
 type ICMPOptionDNSSearchList struct {
     Type        ICMPOptionType
     Length      uint8
     Lifetime    uint32
     DomainNames []string
+}
+
+// Len implements the Len method of ICMPOption interface.
+func (o *ICMPOptionDNSSearchList) Len() uint8 {
+    if o == nil {
+        return 0
+    }
+
+    return 2 + uint8(len(o.DomainNames))
 }
 
 func ParseOptions(b []byte) ([]ICMPOption, error) {
