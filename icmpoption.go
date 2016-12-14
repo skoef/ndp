@@ -61,12 +61,20 @@ type ICMPOptionPrefixInformation struct {
     Prefix            net.IP
 }
 
-// https://tools.ietf.org/html/rfc6106#section-5
+// https://tools.ietf.org/html/rfc6106#section-5.1
 type ICMPOptionRecursiveDNSServer struct {
     Type     ICMPOptionType
     Length   uint8
     Lifetime uint32
     Servers  []net.IP
+}
+
+// https://tools.ietf.org/html/rfc6106#section-5.2
+type ICMPOptionDNSSearchList struct {
+    Type        ICMPOptionType
+    Length      uint8
+    Lifetime    uint32
+    DomainNames []string
 }
 
 func ParseOptions(b []byte) ([]ICMPOption, error) {
@@ -149,6 +157,24 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
 
                 fmt.Printf("lifetime: %d, servers: %s\n", currentOption.Lifetime, currentOption.Servers)
 
+            case ICMPOptionTypeDNSSearchList:
+                if optionLength < 4 {
+                    fmt.Printf("incorrect length of %d for option %d\n", optionLength, optionType)
+                    goto cleanup
+                }
+
+                currentOption := &ICMPOptionDNSSearchList{
+                    Type:     optionType,
+                    Length:   optionLength,
+                    Lifetime: binary.BigEndian.Uint32(b[4:8]),
+                }
+
+                for i := 8; i <(int(optionLength) * 8); i += 24 {
+                    currentOption.DomainNames = append(currentOption.DomainNames, absDomainName(b[i:(i+24)]))
+                }
+
+                fmt.Printf("lifetime: %d, domains: %s\n", currentOption.Lifetime, currentOption.DomainNames)
+
             default:
                 fmt.Printf("unhandled icmp option: %s (%d) (len: %d)\n", icmpOptionTypes[optionType], optionType, optionLength)
                 goto cleanup
@@ -163,4 +189,23 @@ cleanup:
     }
 
     return icmpOptions, nil
+}
+
+// inspired by golang.org/net/dnsclient.go's absDomainName
+func absDomainName(b []byte) string {
+    name := ""
+    start := 0
+    for {
+        length := int(b[start])
+        if length > 0 {
+            name += string(b[start:(start+length+1)]) + "."
+        }
+
+        start += (length + 1)
+        if start >= len(b) {
+            break
+        }
+    }
+
+    return name
 }
