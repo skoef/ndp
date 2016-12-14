@@ -138,7 +138,7 @@ func (o *ICMPOptionDNSSearchList) Len() uint8 {
     return 2 + uint8(len(o.DomainNames))
 }
 
-func ParseOptions(b []byte) ([]ICMPOption, error) {
+func parseOptions(b []byte) ([]ICMPOption, error) {
     // empty container
     var icmpOptions = []ICMPOption {}
 

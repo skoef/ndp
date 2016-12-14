@@ -36,7 +36,7 @@ func ParseRouterAdvertisement(b []byte) (*RouterAdvertisement, error) {
     if len(b) > 16 {
         fmt.Printf("RA has options: %d bytes\n", len(b) - 16)
 
-        options, err := ParseOptions(b[16:])
+        options, err := parseOptions(b[16:])
         if err != nil {
             fmt.Errorf("failed parsing options: %s", err)
         } else {
@@ -58,7 +58,7 @@ func ParseRouterSolicitation(b []byte) (*RouterSolicitation, error) {
     if len(b) > 8 {
         fmt.Printf("RS has options: %d bytes\n", len(b) - 8)
 
-        options, err := ParseOptions(b[8:])
+        options, err := parseOptions(b[8:])
         if err != nil {
             fmt.Errorf("failed parsing options: %s", err)
         } else {
@@ -93,7 +93,7 @@ func ParseNeighborAdvertisement(b []byte) (*NeighborAdvertisement, error) {
     if len(b) > 24 {
         fmt.Printf("NA has options: %d bytes\n", len(b) - 24)
 
-        options, err := ParseOptions(b[24:])
+        options, err := parseOptions(b[24:])
         if err != nil {
             fmt.Printf("failed parsing options")
         } else {
@@ -117,7 +117,7 @@ func ParseNeighborSolicitation(b []byte) (*NeighborSolicitation, error) {
     if len(b) > 24 {
         fmt.Printf("NS has options: %d bytes\n", len(b) - 24)
 
-        options, err := ParseOptions(b[24:])
+        options, err := parseOptions(b[24:])
         if err != nil {
             fmt.Printf("failed parsing options")
         } else {
