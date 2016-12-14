@@ -61,6 +61,13 @@ type ICMPOptionPrefixInformation struct {
     Prefix            net.IP
 }
 
+// https://tools.ietf.org/html/rfc4861#section-4.6.4
+type ICMPOptionMTU struct {
+    Type   ICMPOptionType
+    Length uint8
+    MTU    uint32
+}
+
 // https://tools.ietf.org/html/rfc6106#section-5.1
 type ICMPOptionRecursiveDNSServer struct {
     Type     ICMPOptionType
@@ -138,6 +145,20 @@ func ParseOptions(b []byte) ([]ICMPOption, error) {
                 }
 
                 fmt.Printf("prefix: %s/%d, onlink: %t, auto: %t, valid: %d, preferred: %d\n", currentOption.Prefix.String(), currentOption.PrefixLength, currentOption.OnLink, currentOption.Auto, currentOption.ValidLifetime, currentOption.PreferredLifetime)
+
+            case ICMPOptionTypeMTU:
+                if optionLength != 1 {
+                    fmt.Printf("incorrect length of %d for option %d\n", optionLength, optionType)
+                    goto cleanup
+                }
+
+                currentOption := &ICMPOptionMTU{
+                    Type:   optionType,
+                    Length: optionLength,
+                    MTU:    binary.BigEndian.Uint32(b[4:8]),
+                }
+
+                fmt.Printf("MTU: %d\n", currentOption.MTU)
 
             case ICMPOptionTypeRecursiveDNSServer:
                 if optionLength < 3 {
