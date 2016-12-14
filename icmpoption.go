@@ -155,8 +155,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
         switch optionType {
             case ICMPOptionTypeSourceLinkLayerAddress:
                 if optionLength != 1 {
-                    fmt.Printf("incorrect length of %d\n", optionLength)
-                    goto cleanup
+                    return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
                 currentOption := &ICMPOptionSourceLinkLayerAddress{
@@ -165,12 +164,15 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
                     LinkLayerAddress: b[2:8],
                 }
 
+                if optionLength != currentOption.Len() {
+                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
+                }
+
                 fmt.Printf("source address: %s\n", currentOption.LinkLayerAddress.String())
 
             case ICMPOptionTypeTargetLinkLayerAddress:
                 if optionLength != 1 {
-                    fmt.Printf("incorrect length of %d\n", optionLength)
-                    goto cleanup
+                    return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
                 currentOption := &ICMPOptionTargetLinkLayerAddress{
@@ -179,12 +181,15 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
                     LinkLayerAddress: b[2:8],
                 }
 
+                if optionLength != currentOption.Len() {
+                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
+                }
+
                 fmt.Printf("target address: %s\n", currentOption.LinkLayerAddress.String())
 
             case ICMPOptionTypePrefixInformation:
                 if optionLength != 4 {
-                    fmt.Printf("incorrect length of %d\n", optionLength)
-                    goto cleanup
+                    return nil, fmt.Errorf("option %s (%d) too short: %d should be 4", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
                 currentOption := &ICMPOptionPrefixInformation{
@@ -198,12 +203,16 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
                     Prefix:            net.IP(b[16:32]),
                 }
 
+                if optionLength != currentOption.Len() {
+                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
+                }
+
+
                 fmt.Printf("prefix: %s/%d, onlink: %t, auto: %t, valid: %d, preferred: %d\n", currentOption.Prefix.String(), currentOption.PrefixLength, currentOption.OnLink, currentOption.Auto, currentOption.ValidLifetime, currentOption.PreferredLifetime)
 
             case ICMPOptionTypeMTU:
                 if optionLength != 1 {
-                    fmt.Printf("incorrect length of %d for option %d\n", optionLength, optionType)
-                    goto cleanup
+                    return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
                 currentOption := &ICMPOptionMTU{
@@ -212,12 +221,15 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
                     MTU:    binary.BigEndian.Uint32(b[4:8]),
                 }
 
+                if optionLength != currentOption.Len() {
+                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
+                }
+
                 fmt.Printf("MTU: %d\n", currentOption.MTU)
 
             case ICMPOptionTypeRecursiveDNSServer:
                 if optionLength < 3 {
-                    fmt.Printf("incorrect length of %d for option 25\n", optionLength)
-                    goto cleanup
+                    return nil, fmt.Errorf("option %s (%d) too short: %d should at least be 3", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
                 currentOption := &ICMPOptionRecursiveDNSServer{
@@ -230,12 +242,15 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
                     currentOption.Servers = append(currentOption.Servers, net.IP(b[i:(i+16)]))
                 }
 
+                if optionLength != currentOption.Len() {
+                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
+                }
+
                 fmt.Printf("lifetime: %d, servers: %s\n", currentOption.Lifetime, currentOption.Servers)
 
             case ICMPOptionTypeDNSSearchList:
                 if optionLength < 4 {
-                    fmt.Printf("incorrect length of %d for option %d\n", optionLength, optionType)
-                    goto cleanup
+                    return nil, fmt.Errorf("option %s (%d) too short: %d should at least be 4", icmpOptionTypes[optionType], optionType, optionLength)
                 }
 
                 currentOption := &ICMPOptionDNSSearchList{
@@ -248,17 +263,19 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
                     currentOption.DomainNames = append(currentOption.DomainNames, absDomainName(b[i:(i+24)]))
                 }
 
+                if optionLength != currentOption.Len() {
+                    return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
+                }
+
                 fmt.Printf("lifetime: %d, domains: %s\n", currentOption.Lifetime, currentOption.DomainNames)
 
             default:
-                fmt.Printf("unhandled icmp option: %s (%d) (len: %d)\n", icmpOptionTypes[optionType], optionType, optionLength)
-                goto cleanup
+                return nil, fmt.Errorf("unhandled ICMPv6 option type %d", optionType)
         }
 
         // add new option to array of options
         icmpOptions = append(icmpOptions, currentOption)
 
-cleanup:
         // chop off bytes for this option
         b = b[(optionLength * 8):]
     }
