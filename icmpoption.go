@@ -4,9 +4,19 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"strings"
 )
 
 type ICMPOptionType int
+
+func (typ ICMPOptionType) String() string {
+	s, ok := icmpOptionTypes[typ]
+	if !ok {
+		return "<nil>"
+	}
+
+	return s
+}
 
 const (
 	ICMPOptionTypeSourceLinkLayerAddress ICMPOptionType = 1
@@ -20,17 +30,18 @@ const (
 
 var icmpOptionTypes = map[ICMPOptionType]string{
 	// https://tools.ietf.org/html/rfc4861#section-4.6
-	1: "Source Link Layer Address",
-	2: "Target Link Layer Address",
-	3: "Prefix Information",
-	4: "Redirected Header",
-	5: "MTU",
+	1: "source link-layer address",
+	2: "target link-layer Address",
+	3: "prefix info",
+	4: "redirected header",
+	5: "mtu",
 	// https://tools.ietf.org/html/rfc6106#section-5
-	25: "Recursive DNS Server",
-	31: "DNS Search List",
+	25: "rdnss",
+	31: "dnssl",
 }
 
 type ICMPOption interface {
+	String() string
 	Len() uint8
 	Marshal() ([]byte, error)
 }
@@ -48,6 +59,15 @@ func (o *ICMPOptionBase) Type() ICMPOptionType {
 type ICMPOptionSourceLinkLayerAddress struct {
 	*ICMPOptionBase
 	linkLayerAddress net.HardwareAddr
+}
+
+// String implements the String method of ICMPOption interface.
+func (o *ICMPOptionSourceLinkLayerAddress) String() string {
+	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
+	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
+	s += fmt.Sprintf(": %s\n", o.linkLayerAddress)
+
+	return s
 }
 
 // Len implements the Len method of ICMPOption interface.
@@ -68,6 +88,15 @@ func (o *ICMPOptionSourceLinkLayerAddress) Marshal() ([]byte, error) {
 type ICMPOptionTargetLinkLayerAddress struct {
 	*ICMPOptionBase
 	linkLayerAddress net.HardwareAddr
+}
+
+// String implements the String method of ICMPOption interface.
+func (o *ICMPOptionTargetLinkLayerAddress) String() string {
+	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
+	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
+	s += fmt.Sprintf(": %s\n", o.linkLayerAddress)
+
+	return s
 }
 
 // Len implements the Len method of ICMPOption interface.
@@ -96,6 +125,25 @@ type ICMPOptionPrefixInformation struct {
 	Prefix            net.IP
 }
 
+// String implements the String method of ICMPOption interface.
+func (o *ICMPOptionPrefixInformation) String() string {
+	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
+	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
+	s += fmt.Sprintf(": %s/%d, ", o.Prefix, o.PrefixLength)
+	f := []string{}
+	if o.OnLink {
+		f = append(f, "onlink")
+	}
+	if o.Auto {
+		f = append(f, "auto")
+	}
+	s += fmt.Sprintf("Flags %s, ", f)
+	s += fmt.Sprintf("valid time %ds, ", o.ValidLifetime)
+	s += fmt.Sprintf("pref. time %ds\n", o.PreferredLifetime)
+
+	return s
+}
+
 // Len implements the Len method of ICMPOption interface.
 func (o *ICMPOptionPrefixInformation) Len() uint8 {
 	if o == nil {
@@ -115,6 +163,15 @@ func (o *ICMPOptionPrefixInformation) Marshal() ([]byte, error) {
 type ICMPOptionMTU struct {
 	*ICMPOptionBase
 	MTU uint32
+}
+
+// String implements the String method of ICMPOption interface.
+func (o *ICMPOptionMTU) String() string {
+	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
+	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
+	s += fmt.Sprintf(": %d", o.MTU)
+
+	return s
 }
 
 // Len implements the Len method of ICMPOption interface.
@@ -148,6 +205,18 @@ func (o *ICMPOptionRecursiveDNSServer) Len() uint8 {
 	return 1 + uint8(len(o.Servers)*2)
 }
 
+// String implements the String method of ICMPOption interface.
+func (o *ICMPOptionRecursiveDNSServer) String() string {
+	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
+	s += fmt.Sprintf("length %d (%d): ", (o.Len() * 8), o.Len())
+	s += fmt.Sprintf("lifetime %ds, ", o.Lifetime)
+	for _, a := range o.Servers {
+		s += fmt.Sprintf("addr: %s ", a.String())
+	}
+
+	return s
+}
+
 // Marshal implements the Marshal method of ICMPOption interface.
 func (o *ICMPOptionRecursiveDNSServer) Marshal() ([]byte, error) {
 	// TODO: implement
@@ -159,6 +228,15 @@ type ICMPOptionDNSSearchList struct {
 	*ICMPOptionBase
 	Lifetime    uint32
 	DomainNames []string
+}
+
+// String implements the String method of ICMPOption interface.
+func (o *ICMPOptionDNSSearchList) String() string {
+	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
+	s += fmt.Sprintf("length %d (%d): ", (o.Len() * 8), o.Len())
+	s += fmt.Sprintf("lifetime %ds, ", o.Lifetime)
+	s += fmt.Sprintf("domain(s) %s", strings.Join(o.DomainNames, ", "))
+	return s
 }
 
 // Len implements the Len method of ICMPOption interface.

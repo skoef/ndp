@@ -12,8 +12,10 @@ var (
 )
 
 type ICMP interface {
+	String() string
 	Len() uint8
 	Marshal() ([]byte, error)
+	Type() ipv6.ICMPType
 }
 
 type ICMPBase struct {
@@ -24,16 +26,6 @@ type ICMPBase struct {
 
 func (p *ICMPBase) Type() ipv6.ICMPType {
 	return p.icmpType
-}
-
-func (p *ICMPBase) Len() uint8 {
-	return p.length
-}
-
-func (p *ICMPBase) Marshal() ([]byte, error) {
-	b := make([]byte, p.Len())
-	_ = b
-	return nil, errors.New("TODO fix me")
 }
 
 func ParseMessage(b []byte) (ICMP, error) {

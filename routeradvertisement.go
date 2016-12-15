@@ -1,6 +1,9 @@
 package ndp
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"fmt"
+)
 
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.2
 type ICMPRouterAdvertisement struct {
@@ -12,6 +15,30 @@ type ICMPRouterAdvertisement struct {
 	RouterLifeTime uint16
 	ReachableTime  uint32
 	RetransTimer   uint32
+}
+
+func (p *ICMPRouterAdvertisement) String() string {
+	s := fmt.Sprintf("%s, length %d\n  ", p.Type(), p.Len())
+	s += fmt.Sprintf("hop limit %d, ", p.HopLimit)
+	f := []string{}
+	if p.ManagedAddress {
+		f = append(f, "managed")
+	}
+	if p.OtherStateful {
+		f = append(f, "other stateful")
+	}
+	if p.HomeAgent {
+		f = append(f, "home agent")
+	}
+	s += fmt.Sprintf("Flags %s, ", f)
+	s += fmt.Sprintf("router lifetime %ds, ", p.RouterLifeTime)
+	s += fmt.Sprintf("reachable time %ds, ", p.ReachableTime)
+	s += fmt.Sprintf("retrans time %ds\n", p.RetransTimer)
+	for _, o := range p.Options {
+		s += fmt.Sprintf("    %s\n", o)
+	}
+
+	return s
 }
 
 func (p *ICMPRouterAdvertisement) Len() uint8 {
