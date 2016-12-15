@@ -44,7 +44,7 @@ func (o *ICMPOptionBase) Type() ICMPOptionType {
 	return o.optionType
 }
 
-// https://tools.ietf.org/html/rfc4861#section-4.6.1
+// As defined inhttps://tools.ietf.org/html/rfc4861#section-4.6.1
 type ICMPOptionSourceLinkLayerAddress struct {
 	*ICMPOptionBase
 	linkLayerAddress net.HardwareAddr
@@ -85,7 +85,7 @@ func (o *ICMPOptionTargetLinkLayerAddress) Marshal() ([]byte, error) {
 	return nil, nil
 }
 
-// https://tools.ietf.org/html/rfc4861#section-4.6.2
+// As defined in https://tools.ietf.org/html/rfc4861#section-4.6.2
 type ICMPOptionPrefixInformation struct {
 	*ICMPOptionBase
 	PrefixLength      uint8
@@ -111,7 +111,7 @@ func (o *ICMPOptionPrefixInformation) Marshal() ([]byte, error) {
 	return nil, nil
 }
 
-// https://tools.ietf.org/html/rfc4861#section-4.6.4
+// As defined in https://tools.ietf.org/html/rfc4861#section-4.6.4
 type ICMPOptionMTU struct {
 	*ICMPOptionBase
 	MTU uint32
@@ -132,7 +132,7 @@ func (o *ICMPOptionMTU) Marshal() ([]byte, error) {
 	return nil, nil
 }
 
-// https://tools.ietf.org/html/rfc6106#section-5.1
+// As defined in https://tools.ietf.org/html/rfc6106#section-5.1
 type ICMPOptionRecursiveDNSServer struct {
 	*ICMPOptionBase
 	Lifetime uint32
@@ -154,7 +154,7 @@ func (o *ICMPOptionRecursiveDNSServer) Marshal() ([]byte, error) {
 	return nil, nil
 }
 
-// https://tools.ietf.org/html/rfc6106#section-5.2
+// As defined in https://tools.ietf.org/html/rfc6106#section-5.2
 type ICMPOptionDNSSearchList struct {
 	*ICMPOptionBase
 	Lifetime    uint32
