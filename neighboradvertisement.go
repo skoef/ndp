@@ -4,16 +4,16 @@ import (
 	"net"
 )
 
-// https://tools.ietf.org/html/rfc4861#section-4.4
-type NeighborAdvertisement struct {
+// As defined in https://tools.ietf.org/html/rfc4861#section-4.4
+type ICMPNeighborAdvertisement struct {
+	*ICMPBase
 	Router        bool
 	Solicited     bool
 	Override      bool
 	TargetAddress net.IP
-	Options       []ICMPOption
 }
 
-func (p *NeighborAdvertisement) Len(proto int) int {
+func (p *ICMPNeighborAdvertisement) Len() uint8 {
 	if p == nil {
 		return 0
 	}
@@ -23,8 +23,8 @@ func (p *NeighborAdvertisement) Len(proto int) int {
 	return 4 + 4 + 16
 }
 
-func (p *NeighborAdvertisement) Marshal(proto int) ([]byte, error) {
-	b := make([]byte, 4)
+func (p *ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
+	b := make([]byte, p.Len())
 	if p.Router {
 		b[0] ^= 0x80
 	}

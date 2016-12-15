@@ -2,8 +2,9 @@ package ndp
 
 import "encoding/binary"
 
-// https://tools.ietf.org/html/rfc4861#section-4.2
-type RouterAdvertisement struct {
+// As defined in https://tools.ietf.org/html/rfc4861#section-4.2
+type ICMPRouterAdvertisement struct {
+	*ICMPBase
 	HopLimit       uint8
 	ManagedAddress bool
 	OtherStateful  bool
@@ -11,10 +12,9 @@ type RouterAdvertisement struct {
 	RouterLifeTime uint16
 	ReachableTime  uint32
 	RetransTimer   uint32
-	Options        []ICMPOption
 }
 
-func (p *RouterAdvertisement) Len(proto int) int {
+func (p *ICMPRouterAdvertisement) Len() uint8 {
 	if p == nil {
 		return 0
 	}
@@ -24,8 +24,8 @@ func (p *RouterAdvertisement) Len(proto int) int {
 	return 12
 }
 
-func (p *RouterAdvertisement) Marshal(proto int) ([]byte, error) {
-	b := make([]byte, p.Len(0))
+func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
+	b := make([]byte, p.Len())
 	b[0] ^= byte(p.HopLimit)
 	if p.ManagedAddress {
 		b[1] ^= 0x80

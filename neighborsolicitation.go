@@ -4,13 +4,13 @@ import (
 	"net"
 )
 
-// https://tools.ietf.org/html/rfc4861#section-4.3
-type NeighborSolicitation struct {
+// As defined in https://tools.ietf.org/html/rfc4861#section-4.3
+type ICMPNeighborSolicitation struct {
+	*ICMPBase
 	TargetAddress net.IP
-	Options       []ICMPOption
 }
 
-func (p *NeighborSolicitation) Len(proto int) int {
+func (p *ICMPNeighborSolicitation) Len() uint8 {
 	if p == nil {
 		return 0
 	}
@@ -20,8 +20,8 @@ func (p *NeighborSolicitation) Len(proto int) int {
 	return 4 + 16
 }
 
-func (p *NeighborSolicitation) Marshal(proto int) ([]byte, error) {
-	b := make([]byte, 4)
+func (p *ICMPNeighborSolicitation) Marshal() ([]byte, error) {
+	b := make([]byte, p.Len())
 	buf := append(b, p.TargetAddress...)
 	return buf, nil
 }
