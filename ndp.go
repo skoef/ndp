@@ -1,160 +1,41 @@
 package ndp
 
-import (
-	"encoding/binary"
-	"errors"
+import "strings"
 
-	"golang.org/x/net/ipv6"
-)
-
-var (
-	errMessageTooShort = errors.New("message too short")
-)
-
-type ICMP interface {
-	String() string
-	Marshal() ([]byte, error)
-	Type() ipv6.ICMPType
-	optMarshal() ([]byte, error)
-}
-
-type ICMPBase struct {
-	icmpType ipv6.ICMPType
-	length   uint8
-	Options  []ICMPOption
-}
-
-func (p *ICMPBase) Type() ipv6.ICMPType {
-	return p.icmpType
-}
-
-func (p *ICMPBase) optMarshal() ([]byte, error) {
-	var b []byte
-	for _, o := range p.Options {
-		m, err := o.Marshal()
-		if err != nil {
-			return nil, err
+// inspired by golang.org/net/dnsclient.go's absDomainName
+func absDomainName(b []byte) string {
+	name := ""
+	start := 0
+	for {
+		length := int(b[start])
+		if length > 0 {
+			name += string(b[start+1:(start+length+1)]) + "."
 		}
 
-		b = append(b, m...)
+		start += (length + 1)
+		if start >= len(b) {
+			break
+		}
 	}
 
-	return b, nil
+	// make sure we end with a dot
+	if !strings.HasSuffix(name, ".") {
+		name += "."
+	}
+
+	return name
 }
 
-func ParseMessage(b []byte) (ICMP, error) {
-	if len(b) < 4 {
-		return nil, errMessageTooShort
+func encDomainName(n string) []byte {
+	b := make([]byte, 0)
+	// loop over each part of the domain name
+	for _, p := range strings.Split(n, ".") {
+		// length for this part
+		b = append(b, uint8(len(p)))
+		// append bytes for this part
+		b = append(b, []byte(p)...)
 	}
-
-	icmpType := ipv6.ICMPType(b[0])
-	var message ICMP
-
-	switch icmpType {
-	case ipv6.ICMPTypeRouterSolicitation:
-		message = &ICMPRouterSolicitation{
-			ICMPBase: &ICMPBase{
-				icmpType: icmpType,
-			},
-		}
-
-		if len(b) > 8 {
-			options, err := parseOptions(b[8:])
-			if err != nil {
-				return nil, err
-			}
-
-			message.(*ICMPRouterSolicitation).Options = options
-		}
-
-		return message, nil
-
-	case ipv6.ICMPTypeRouterAdvertisement:
-		message = &ICMPRouterAdvertisement{
-			ICMPBase: &ICMPBase{
-				icmpType: icmpType,
-			},
-			HopLimit:       uint8(b[4]),
-			ManagedAddress: false,
-			OtherStateful:  false,
-			HomeAgent:      false,
-			RouterLifeTime: binary.BigEndian.Uint16(b[6:8]),
-			ReachableTime:  binary.BigEndian.Uint32(b[8:12]),
-			RetransTimer:   binary.BigEndian.Uint32(b[12:16]),
-		}
-
-		// parse flags
-		if b[5]&0x80 > 0 {
-			message.(*ICMPRouterAdvertisement).ManagedAddress = true
-		}
-		if b[5]&0x40 > 0 {
-			message.(*ICMPRouterAdvertisement).OtherStateful = true
-		}
-		if b[5]&0x20 > 0 {
-			message.(*ICMPRouterAdvertisement).HomeAgent = true
-		}
-
-		if len(b) > 16 {
-			options, err := parseOptions(b[16:])
-			if err != nil {
-				return nil, err
-			}
-
-			message.(*ICMPRouterAdvertisement).Options = options
-		}
-
-		return message, nil
-
-	case ipv6.ICMPTypeNeighborSolicitation:
-		message = &ICMPNeighborSolicitation{
-			ICMPBase: &ICMPBase{
-				icmpType: icmpType,
-			},
-			TargetAddress: b[8:24],
-		}
-
-		if len(b) > 24 {
-			options, err := parseOptions(b[24:])
-			if err != nil {
-				return nil, err
-			}
-
-			message.(*ICMPNeighborSolicitation).Options = options
-		}
-
-		return message, nil
-
-	case ipv6.ICMPTypeNeighborAdvertisement:
-		message = &ICMPNeighborAdvertisement{
-			ICMPBase: &ICMPBase{
-				icmpType: icmpType,
-			},
-			TargetAddress: b[8:24],
-		}
-
-		// parse flags
-		if b[4]&0x80 > 0 {
-			message.(*ICMPNeighborAdvertisement).Router = true
-		}
-		if b[4]&0x40 > 0 {
-			message.(*ICMPNeighborAdvertisement).Solicited = true
-		}
-		if b[4]&0x20 > 0 {
-			message.(*ICMPNeighborAdvertisement).Override = true
-		}
-
-		if len(b) > 24 {
-			options, err := parseOptions(b[24:])
-			if err != nil {
-				return nil, err
-			}
-
-			message.(*ICMPNeighborAdvertisement).Options = options
-		}
-
-		return message, nil
-
-	default:
-		return nil, nil
-	}
+	// length 0 and 0 body for ending .
+	b = append(b, 0, 0)
+	return b
 }
