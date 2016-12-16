@@ -21,12 +21,21 @@ func (p *ICMPRouterSolicitation) Len() uint8 {
 		return 0
 	}
 
-	// TODO: fix this!!
-	// calculate options
-	return 4
+	return 1 + p.optLen()
 }
 
 func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {
-	b := make([]byte, p.Len())
+	b := make([]byte, 8)
+	// message header
+	b[0] = uint8(p.Type())
+	// b[1] = code, always 0
+	// b[2:3] = checksum, TODO
+	// add options
+	om, err := p.optMarshal()
+	if err != nil {
+		return nil, err
+	}
+
+	b = append(b, om...)
 	return b, nil
 }
