@@ -164,3 +164,37 @@ func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 }
+
+func TestICMPOptionPrefixInformation(t *testing.T) {
+	option := &ICMPOptionPrefixInformation{
+		ICMPOptionBase: &ICMPOptionBase{
+			optionType: ICMPOptionTypePrefixInformation,
+		},
+		PrefixLength:      64,
+		OnLink:            true,
+		Auto:              true,
+		ValidLifetime:     2592000,
+		PreferredLifetime: 604800,
+		Prefix:            net.ParseIP("2a00:1450:400e:802::"),
+	}
+
+	if option.Type() != ICMPOptionTypePrefixInformation {
+		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypePrefixInformation)
+	}
+
+	if option.Len() != 4 {
+		t.Errorf("wrong length, %d != 4", option.Len())
+	}
+
+	marshal, err := option.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// fixture describes
+	// prefix info option (3), length 32 (4): 2a00:1450:400e:802::/64, Flags [onlink, auto], valid time 2592000s, pref. time 604800s
+	fixture := []byte{3, 4, 64, 192, 0, 39, 141, 0, 0, 9, 58, 128, 0, 0, 0, 0, 42, 0, 20, 80, 64, 14, 8, 2, 0, 0, 0, 0, 0, 0, 0, 0}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+}

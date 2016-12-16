@@ -170,13 +170,29 @@ func (o *ICMPOptionPrefixInformation) Len() uint8 {
 		return 0
 	}
 
+	// Prefix information options are always 4
 	return 4
 }
 
 // Marshal implements the Marshal method of ICMPOption interface.
 func (o *ICMPOptionPrefixInformation) Marshal() ([]byte, error) {
-	// TODO: implement
-	return nil, nil
+	b := make([]byte, 16)
+	// option header
+	b[0] = byte(o.Type())
+	b[1] = byte(o.Len())
+	// option fields
+	b[2] = byte(o.PrefixLength)
+	if o.OnLink {
+		b[3] ^= 0x80
+	}
+	if o.Auto {
+		b[3] ^= 0x40
+	}
+	binary.BigEndian.PutUint32(b[4:8], uint32(o.ValidLifetime))
+	binary.BigEndian.PutUint32(b[8:12], uint32(o.PreferredLifetime))
+	b = append(b, o.Prefix...)
+
+	return b, nil
 }
 
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.6.4
