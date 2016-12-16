@@ -18,7 +18,8 @@ type ICMPRouterAdvertisement struct {
 }
 
 func (p *ICMPRouterAdvertisement) String() string {
-	s := fmt.Sprintf("%s, length %d\n  ", p.Type(), p.Len())
+	m, _ := p.Marshal()
+	s := fmt.Sprintf("%s, length %d\n  ", p.Type(), uint8(len(m)))
 	s += fmt.Sprintf("hop limit %d, ", p.HopLimit)
 	f := []string{}
 	if p.ManagedAddress {
@@ -39,14 +40,6 @@ func (p *ICMPRouterAdvertisement) String() string {
 	}
 
 	return s
-}
-
-func (p *ICMPRouterAdvertisement) Len() uint8 {
-	if p == nil {
-		return 0
-	}
-
-	return 16 + p.optLen()
 }
 
 func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {

@@ -13,10 +13,8 @@ var (
 
 type ICMP interface {
 	String() string
-	Len() uint8
 	Marshal() ([]byte, error)
 	Type() ipv6.ICMPType
-	optLen() uint8
 	optMarshal() ([]byte, error)
 }
 
@@ -28,15 +26,6 @@ type ICMPBase struct {
 
 func (p *ICMPBase) Type() ipv6.ICMPType {
 	return p.icmpType
-}
-
-func (p *ICMPBase) optLen() uint8 {
-	var l uint8 = 0
-	for _, o := range p.Options {
-		l += o.Len()
-	}
-
-	return l
 }
 
 func (p *ICMPBase) optMarshal() ([]byte, error) {

@@ -8,20 +8,13 @@ type ICMPRouterSolicitation struct {
 }
 
 func (p *ICMPRouterSolicitation) String() string {
-	s := fmt.Sprintf("%s, length %d\n  ", p.Type(), p.Len())
+	m, _ := p.Marshal()
+	s := fmt.Sprintf("%s, length %d\n  ", p.Type(), uint8(len(m)))
 	for _, o := range p.Options {
 		s += fmt.Sprintf("    %s\n", o)
 	}
 
 	return s
-}
-
-func (p *ICMPRouterSolicitation) Len() uint8 {
-	if p == nil {
-		return 0
-	}
-
-	return 1 + p.optLen()
 }
 
 func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {

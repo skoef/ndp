@@ -48,9 +48,6 @@ func TestICMPOptionDNSSearchList(t *testing.T) {
 		t.Errorf("wrong length, %d < 4", option.Len())
 	}
 
-	t.Logf("option length: %d", option.Len())
-	t.Logf("option type: %d", option.Type())
-
 	marshal, err := option.Marshal()
 	if err != nil {
 		t.Error(err)
@@ -79,9 +76,6 @@ func TestICMPOptionMTU(t *testing.T) {
 	if option.Len() != 1 {
 		t.Errorf("wrong length, %d != 1", option.Len())
 	}
-
-	t.Logf("option length: %d", option.Len())
-	t.Logf("option type: %d", option.Type())
 
 	marshal, err := option.Marshal()
 	if err != nil {
@@ -115,9 +109,6 @@ func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
 	if option.Len() != 1 {
 		t.Errorf("wrong length, %d != 1", option.Len())
 	}
-
-	t.Logf("option length: %d", option.Len())
-	t.Logf("option type: %d", option.Type())
 
 	marshal, err := option.Marshal()
 	if err != nil {

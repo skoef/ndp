@@ -15,8 +15,8 @@ type ICMPNeighborAdvertisement struct {
 }
 
 func (p *ICMPNeighborAdvertisement) String() string {
-	// tgt is 2a01:7c8:aaaa:3:ba1d::3, Flags [solicited]
-	s := fmt.Sprintf("%s, length %d  ", p.Type(), p.Len())
+	m, _ := p.Marshal()
+	s := fmt.Sprintf("%s, length %d  ", p.Type(), uint8(len(m)))
 	s += fmt.Sprintf("tgt is %s, ", p.TargetAddress)
 	s += "Flags ["
 	if p.Router {
@@ -36,29 +36,29 @@ func (p *ICMPNeighborAdvertisement) String() string {
 	return s
 }
 
-func (p *ICMPNeighborAdvertisement) Len() uint8 {
-	if p == nil {
-		return 0
-	}
-
-	// TODO: fix this!!
-	// doens't actually calculate anything
-	return 4 + 4 + 16
-}
-
 func (p *ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
-	b := make([]byte, p.Len())
+	b := make([]byte, 8)
+	// message header
+	b[0] = uint8(p.Type())
+	// b[1] = code, always 0
+	// b[2:3] = checksum, TODO
 	if p.Router {
-		b[0] ^= 0x80
+		b[3] ^= 0x80
 	}
 	if p.Solicited {
-		b[0] ^= 0x40
+		b[3] ^= 0x40
 	}
 	if p.Override {
-		b[0] ^= 0x20
+		b[3] ^= 0x20
+	}
+	b = append(b, p.TargetAddress...)
+	// add options
+	om, err := p.optMarshal()
+	if err != nil {
+		return nil, err
 	}
 
-	buf := append(b, p.TargetAddress...)
+	b = append(b, om...)
 
-	return buf, nil
+	return b, nil
 }
