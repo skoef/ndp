@@ -3,6 +3,7 @@ package ndp
 import (
 	"bytes"
 	"net"
+	"strings"
 	"testing"
 
 	"golang.org/x/net/ipv6"
@@ -28,6 +29,12 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 	fixture := []byte{135, 0, 0, 0, 0, 0, 0, 0, 254, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix := "neighbor solicitation, length 24, who has fe80::1"
+	desc := icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
 	// add option
@@ -74,6 +81,12 @@ func TestICMPRouterSolicitation(t *testing.T) {
 	fixture := []byte{133, 0, 0, 0, 0, 0, 0, 0}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix := "router solicitation, length 8"
+	desc := icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
 	// add option
@@ -127,6 +140,12 @@ func TestICMPRouterAdvertismentMarshal(t *testing.T) {
 	fixture := []byte{134, 0, 0, 0, 64, 224, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix := "router advertisement, length 16\n hop limit 64, Flags [managed other stateful home agent], router lifetime 3600s, reachable time 7200s, retrans time 1800s"
+	desc := icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
 	// add option

@@ -3,6 +3,7 @@ package ndp
 import (
 	"bytes"
 	"net"
+	"strings"
 	"testing"
 )
 
@@ -63,6 +64,12 @@ func TestICMPOptionMTU(t *testing.T) {
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
+
+	descfix := "mtu option (5), length 8 (1): 1500"
+	desc := option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
 }
 
 func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
@@ -96,6 +103,12 @@ func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
+
+	descfix := "source link-layer address option (1), length 8 (1): a1:b2:c3:d4:e6:f7"
+	desc := option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
 }
 
 func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
@@ -128,6 +141,12 @@ func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
 	fixture := []byte{2, 1, 161, 178, 195, 212, 230, 247}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix := "target link-layer Address option (2), length 8 (1): a1:b2:c3:d4:e6:f7"
+	desc := option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 }
 
@@ -163,6 +182,12 @@ func TestICMPOptionPrefixInformation(t *testing.T) {
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
+
+	descfix := "prefix info option (3), length 32 (4): 2a00:1450:400e:802::/64, Flags [onlink auto], valid time 2592000s, pref. time 604800s"
+	desc := option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
 }
 
 func TestICMPOptionRecursiveDNSServer(t *testing.T) {
@@ -194,6 +219,12 @@ func TestICMPOptionRecursiveDNSServer(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 
+	descfix := "rdnss option (25), length 24 (3): lifetime 300s, addr: 2001:4860:4860::8844"
+	desc := option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
 	// check with multiple nameserver IPs
 	option.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")}
 
@@ -211,5 +242,11 @@ func TestICMPOptionRecursiveDNSServer(t *testing.T) {
 	fixture = []byte{25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix = "rdnss option (25), length 40 (5): lifetime 300s, addr: 2001:4860:4860::8844 addr: 2001:4860:4860::8888"
+	desc = option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 }
