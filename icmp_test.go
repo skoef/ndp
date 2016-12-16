@@ -37,7 +37,7 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 		},
 	}
 
-	option.linkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
+	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
 	if err != nil {
 		t.Error(err)
 	}
@@ -83,7 +83,7 @@ func TestICMPRouterSolicitation(t *testing.T) {
 		},
 	}
 
-	option.linkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
+	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
 	if err != nil {
 		t.Error(err)
 	}

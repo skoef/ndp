@@ -58,14 +58,14 @@ func (o *ICMPOptionBase) Type() ICMPOptionType {
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.6.1
 type ICMPOptionSourceLinkLayerAddress struct {
 	*ICMPOptionBase
-	linkLayerAddress net.HardwareAddr
+	LinkLayerAddress net.HardwareAddr
 }
 
 // String implements the String method of ICMPOption interface.
 func (o *ICMPOptionSourceLinkLayerAddress) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
-	s += fmt.Sprintf(": %s\n", o.linkLayerAddress)
+	s += fmt.Sprintf(": %s\n", o.LinkLayerAddress)
 
 	return s
 }
@@ -90,21 +90,21 @@ func (o *ICMPOptionSourceLinkLayerAddress) Marshal() ([]byte, error) {
 	b[0] = byte(o.Type())
 	b[1] = byte(o.Len())
 	// option fields
-	b = append(b, o.linkLayerAddress...)
+	b = append(b, o.LinkLayerAddress...)
 
 	return b, nil
 }
 
 type ICMPOptionTargetLinkLayerAddress struct {
 	*ICMPOptionBase
-	linkLayerAddress net.HardwareAddr
+	LinkLayerAddress net.HardwareAddr
 }
 
 // String implements the String method of ICMPOption interface.
 func (o *ICMPOptionTargetLinkLayerAddress) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
-	s += fmt.Sprintf(": %s\n", o.linkLayerAddress)
+	s += fmt.Sprintf(": %s\n", o.LinkLayerAddress)
 
 	return s
 }
@@ -129,7 +129,7 @@ func (o *ICMPOptionTargetLinkLayerAddress) Marshal() ([]byte, error) {
 	b[0] = byte(o.Type())
 	b[1] = byte(o.Len())
 	// option fields
-	b = append(b, o.linkLayerAddress...)
+	b = append(b, o.LinkLayerAddress...)
 
 	return b, nil
 }
@@ -340,7 +340,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 					optionType: optionType,
 					length:     optionLength,
 				},
-				linkLayerAddress: b[2:8],
+				LinkLayerAddress: b[2:8],
 			}
 
 		case ICMPOptionTypeTargetLinkLayerAddress:
@@ -353,7 +353,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 					optionType: optionType,
 					length:     optionLength,
 				},
-				linkLayerAddress: b[2:8],
+				LinkLayerAddress: b[2:8],
 			}
 
 		case ICMPOptionTypePrefixInformation:

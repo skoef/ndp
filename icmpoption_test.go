@@ -72,7 +72,7 @@ func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
 			optionType: ICMPOptionTypeSourceLinkLayerAddress,
 		},
 	}
-	option.linkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e6:f7")
+	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e6:f7")
 	if err != nil {
 		t.Error(err)
 	}
@@ -105,7 +105,7 @@ func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
 			optionType: ICMPOptionTypeTargetLinkLayerAddress,
 		},
 	}
-	option.linkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e6:f7")
+	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e6:f7")
 	if err != nil {
 		t.Error(err)
 	}
