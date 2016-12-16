@@ -16,6 +16,8 @@ type ICMP interface {
 	Len() uint8
 	Marshal() ([]byte, error)
 	Type() ipv6.ICMPType
+	optLen() uint8
+	optMarshal() ([]byte, error)
 }
 
 type ICMPBase struct {
@@ -26,6 +28,29 @@ type ICMPBase struct {
 
 func (p *ICMPBase) Type() ipv6.ICMPType {
 	return p.icmpType
+}
+
+func (p *ICMPBase) optLen() uint8 {
+	var l uint8 = 0
+	for _, o := range p.Options {
+		l += o.Len()
+	}
+
+	return l
+}
+
+func (p *ICMPBase) optMarshal() ([]byte, error) {
+	var b []byte
+	for _, o := range p.Options {
+		m, err := o.Marshal()
+		if err != nil {
+			return nil, err
+		}
+
+		b = append(b, m...)
+	}
+
+	return b, nil
 }
 
 func ParseMessage(b []byte) (ICMP, error) {

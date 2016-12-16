@@ -46,25 +46,34 @@ func (p *ICMPRouterAdvertisement) Len() uint8 {
 		return 0
 	}
 
-	// TODO: fix this!!
-	// doens't actually calculate anything
-	return 12
+	return 16 + p.optLen()
 }
 
 func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
-	b := make([]byte, p.Len())
-	b[0] ^= byte(p.HopLimit)
+	b := make([]byte, 16)
+	// message header
+	b[0] = uint8(p.Type())
+	// b[1] = code, always 0
+	// b[2:3] = checksum, TODO
+	b[4] ^= byte(p.HopLimit)
 	if p.ManagedAddress {
-		b[1] ^= 0x80
+		b[5] ^= 0x80
 	}
 	if p.OtherStateful {
-		b[1] ^= 0x40
+		b[5] ^= 0x40
 	}
 	if p.HomeAgent {
-		b[1] ^= 0x20
+		b[5] ^= 0x20
 	}
-	binary.BigEndian.PutUint16(b[2:4], uint16(p.RouterLifeTime))
-	binary.BigEndian.PutUint32(b[4:8], uint32(p.ReachableTime))
-	binary.BigEndian.PutUint32(b[8:12], uint32(p.RetransTimer))
+	binary.BigEndian.PutUint16(b[6:8], uint16(p.RouterLifeTime))
+	binary.BigEndian.PutUint32(b[8:12], uint32(p.ReachableTime))
+	binary.BigEndian.PutUint32(b[12:16], uint32(p.RetransTimer))
+	// add options
+	om, err := p.optMarshal()
+	if err != nil {
+		return nil, err
+	}
+
+	b = append(b, om...)
 	return b, nil
 }
