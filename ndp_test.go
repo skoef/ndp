@@ -29,3 +29,35 @@ func TestEncDecDomainName(t *testing.T) {
 		}
 	}
 }
+
+func TestICMPOptionMTU(t *testing.T) {
+	option := &ICMPOptionMTU{
+		ICMPOptionBase: &ICMPOptionBase{
+			optionType: ICMPOptionTypeMTU,
+		},
+		MTU: 1500,
+	}
+
+	if option.Type() != ICMPOptionTypeMTU {
+		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeMTU)
+	}
+
+	if option.Len() != 1 {
+		t.Errorf("wrong length, %d != 1", option.Len())
+	}
+
+	t.Logf("option length: %d", option.Len())
+	t.Logf("option type: %d", option.Type())
+
+	marshal, err := option.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// fixture describes
+	// mtu option (5), length 8 (1):  1500
+	fixture := []byte{5, 1, 0, 0, 0, 0, 5, 220}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+}

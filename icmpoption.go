@@ -180,13 +180,20 @@ func (o *ICMPOptionMTU) Len() uint8 {
 		return 0
 	}
 
+	// MTU fields are always 1 byte
 	return 1
 }
 
 // Marshal implements the Marshal method of ICMPOption interface.
 func (o *ICMPOptionMTU) Marshal() ([]byte, error) {
-	// TODO: implement
-	return nil, nil
+	// option header
+	b := make([]byte, 8)
+	b[0] = byte(o.Type())
+	b[1] = byte(o.Len())
+	// option fields
+	binary.BigEndian.PutUint32(b[4:8], uint32(o.MTU))
+
+	return b, nil
 }
 
 // As defined in https://tools.ietf.org/html/rfc6106#section-5.1
