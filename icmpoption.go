@@ -65,7 +65,7 @@ type ICMPOptionSourceLinkLayerAddress struct {
 func (o *ICMPOptionSourceLinkLayerAddress) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
-	s += fmt.Sprintf(": %s\n", o.LinkLayerAddress)
+	s += fmt.Sprintf(": %s", o.LinkLayerAddress)
 
 	return s
 }
@@ -104,7 +104,7 @@ type ICMPOptionTargetLinkLayerAddress struct {
 func (o *ICMPOptionTargetLinkLayerAddress) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
-	s += fmt.Sprintf(": %s\n", o.LinkLayerAddress)
+	s += fmt.Sprintf(": %s", o.LinkLayerAddress)
 
 	return s
 }
@@ -159,7 +159,7 @@ func (o *ICMPOptionPrefixInformation) String() string {
 	}
 	s += fmt.Sprintf("Flags %s, ", f)
 	s += fmt.Sprintf("valid time %ds, ", o.ValidLifetime)
-	s += fmt.Sprintf("pref. time %ds\n", o.PreferredLifetime)
+	s += fmt.Sprintf("pref. time %ds", o.PreferredLifetime)
 
 	return s
 }
@@ -257,7 +257,7 @@ func (o *ICMPOptionRecursiveDNSServer) String() string {
 		s += fmt.Sprintf("addr: %s ", a.String())
 	}
 
-	return s
+	return strings.TrimSuffix(s, " ")
 }
 
 // Marshal implements the Marshal method of ICMPOption interface.

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 
 	"golang.org/x/net/ipv6"
 )
@@ -168,12 +169,12 @@ type ICMPRouterSolicitation struct {
 
 func (p *ICMPRouterSolicitation) String() string {
 	m, _ := p.Marshal()
-	s := fmt.Sprintf("%s, length %d\n  ", p.Type(), uint8(len(m)))
+	s := fmt.Sprintf("%s, length %d\n", p.Type(), uint8(len(m)))
 	for _, o := range p.Options {
 		s += fmt.Sprintf("    %s\n", o)
 	}
 
-	return s
+	return strings.TrimSuffix(s, "\n")
 }
 
 func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {
@@ -206,7 +207,7 @@ type ICMPRouterAdvertisement struct {
 
 func (p *ICMPRouterAdvertisement) String() string {
 	m, _ := p.Marshal()
-	s := fmt.Sprintf("%s, length %d\n  ", p.Type(), uint8(len(m)))
+	s := fmt.Sprintf("%s, length %d\n ", p.Type(), uint8(len(m)))
 	s += fmt.Sprintf("hop limit %d, ", p.HopLimit)
 	f := []string{}
 	if p.ManagedAddress {
@@ -226,7 +227,7 @@ func (p *ICMPRouterAdvertisement) String() string {
 		s += fmt.Sprintf("    %s\n", o)
 	}
 
-	return s
+	return strings.TrimSuffix(s, "\n")
 }
 
 func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
@@ -266,13 +267,13 @@ type ICMPNeighborSolicitation struct {
 
 func (p *ICMPNeighborSolicitation) String() string {
 	m, _ := p.Marshal()
-	s := fmt.Sprintf("%s, length %d  ", p.Type(), uint8(len(m)))
+	s := fmt.Sprintf("%s, length %d, ", p.Type(), uint8(len(m)))
 	s += fmt.Sprintf("who has %s\n", p.TargetAddress)
 	for _, o := range p.Options {
 		s += fmt.Sprintf("    %s\n", o)
 	}
 
-	return s
+	return strings.TrimSuffix(s, "\n")
 }
 
 func (p *ICMPNeighborSolicitation) Marshal() ([]byte, error) {
@@ -303,7 +304,7 @@ type ICMPNeighborAdvertisement struct {
 
 func (p *ICMPNeighborAdvertisement) String() string {
 	m, _ := p.Marshal()
-	s := fmt.Sprintf("%s, length %d  ", p.Type(), uint8(len(m)))
+	s := fmt.Sprintf("%s, length %d, ", p.Type(), uint8(len(m)))
 	s += fmt.Sprintf("tgt is %s, ", p.TargetAddress)
 	s += "Flags ["
 	if p.Router {
@@ -320,7 +321,7 @@ func (p *ICMPNeighborAdvertisement) String() string {
 		s += fmt.Sprintf("    %s\n", o)
 	}
 
-	return s
+	return strings.TrimSuffix(s, "\n")
 }
 
 func (p *ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
