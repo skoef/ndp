@@ -30,6 +30,39 @@ func TestEncDecDomainName(t *testing.T) {
 	}
 }
 
+func TestICMPOptionDNSSearchList(t *testing.T) {
+	option := &ICMPOptionDNSSearchList{
+		ICMPOptionBase: &ICMPOptionBase{
+			optionType: ICMPOptionTypeDNSSearchList,
+		},
+		Lifetime:    10,
+		DomainNames: []string{"basement.golang.org."},
+	}
+
+	if option.Type() != ICMPOptionTypeDNSSearchList {
+		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeDNSSearchList)
+	}
+
+	if option.Len() < 4 {
+		t.Errorf("wrong length, %d < 4", option.Len())
+	}
+
+	t.Logf("option length: %d", option.Len())
+	t.Logf("option type: %d", option.Type())
+
+	marshal, err := option.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// fixture describes
+	// dnssl option (31), length 32 (4):  lifetime 10s, domain(s): basement.golang.org.
+	fixture := []byte{31, 4, 0, 0, 0, 0, 0, 10, 8, 98, 97, 115, 101, 109, 101, 110, 116, 6, 103, 111, 108, 97, 110, 103, 3, 111, 114, 103, 0, 0, 0}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+}
+
 func TestICMPOptionMTU(t *testing.T) {
 	option := &ICMPOptionMTU{
 		ICMPOptionBase: &ICMPOptionBase{
