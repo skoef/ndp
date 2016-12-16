@@ -262,8 +262,17 @@ func (o *ICMPOptionRecursiveDNSServer) String() string {
 
 // Marshal implements the Marshal method of ICMPOption interface.
 func (o *ICMPOptionRecursiveDNSServer) Marshal() ([]byte, error) {
-	// TODO: implement
-	return nil, nil
+	b := make([]byte, 8)
+	// option header
+	b[0] = byte(o.Type())
+	b[1] = byte(o.Len())
+	// option fields
+	binary.BigEndian.PutUint32(b[4:8], uint32(o.Lifetime))
+	for _, s := range o.Servers {
+		b = append(b, s...)
+	}
+
+	return b, nil
 }
 
 // As defined in https://tools.ietf.org/html/rfc6106#section-5.2

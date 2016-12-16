@@ -198,3 +198,52 @@ func TestICMPOptionPrefixInformation(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 }
+
+func TestICMPOptionRecursiveDNSServer(t *testing.T) {
+	option := &ICMPOptionRecursiveDNSServer{
+		ICMPOptionBase: &ICMPOptionBase{
+			optionType: ICMPOptionTypeRecursiveDNSServer,
+		},
+		Lifetime: 300,
+		Servers:  []net.IP{net.ParseIP("2001:4860:4860::8844")},
+	}
+
+	if option.Type() != ICMPOptionTypeRecursiveDNSServer {
+		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeRecursiveDNSServer)
+	}
+
+	if option.Len() != 3 {
+		t.Errorf("wrong length, %d != 3", option.Len())
+	}
+
+	marshal, err := option.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// fixture describes
+	// rdnss option (25), length 40 (5):  lifetime 300s, addr: 2001:4860:4860::8844
+	fixture := []byte{25, 3, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	// check with multiple nameserver IPs
+	option.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")}
+
+	if option.Len() != 5 {
+		t.Errorf("wrong length, %d != 5", option.Len())
+	}
+
+	marshal, err = option.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// fixture describes
+	// rdnss option (25), length 40 (5):  lifetime 300s, addr: 2001:4860:4860::8844 addr: 2001:4860:4860::8888
+	fixture = []byte{25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+}
