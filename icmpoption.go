@@ -216,7 +216,7 @@ func (o *ICMPOptionMTU) Len() uint8 {
 		return 0
 	}
 
-	// MTU fields are always 1 byte
+	// MTU options are always 1
 	return 1
 }
 
