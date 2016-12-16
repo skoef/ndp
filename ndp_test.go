@@ -2,6 +2,7 @@ package ndp
 
 import (
 	"bytes"
+	"net"
 	"strings"
 	"testing"
 )
@@ -90,6 +91,75 @@ func TestICMPOptionMTU(t *testing.T) {
 	// fixture describes
 	// mtu option (5), length 8 (1):  1500
 	fixture := []byte{5, 1, 0, 0, 0, 0, 5, 220}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+}
+
+func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
+	var err error
+	option := &ICMPOptionSourceLinkLayerAddress{
+		ICMPOptionBase: &ICMPOptionBase{
+			optionType: ICMPOptionTypeSourceLinkLayerAddress,
+		},
+	}
+	option.linkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e6:f7")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if option.Type() != ICMPOptionTypeSourceLinkLayerAddress {
+		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeSourceLinkLayerAddress)
+	}
+
+	if option.Len() != 1 {
+		t.Errorf("wrong length, %d != 1", option.Len())
+	}
+
+	t.Logf("option length: %d", option.Len())
+	t.Logf("option type: %d", option.Type())
+
+	marshal, err := option.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// fixture describes
+	// source link-address option (1), length 8 (1): a1:b2:c3:d4:e6:f7
+	fixture := []byte{1, 1, 161, 178, 195, 212, 230, 247}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+}
+
+func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
+	var err error
+	option := &ICMPOptionTargetLinkLayerAddress{
+		ICMPOptionBase: &ICMPOptionBase{
+			optionType: ICMPOptionTypeTargetLinkLayerAddress,
+		},
+	}
+	option.linkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e6:f7")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if option.Type() != ICMPOptionTypeTargetLinkLayerAddress {
+		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeTargetLinkLayerAddress)
+	}
+
+	if option.Len() != 1 {
+		t.Errorf("wrong length, %d != 1", option.Len())
+	}
+
+	marshal, err := option.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// fixture describes
+	// target link-address option (1), length 8 (1): a1:b2:c3:d4:e6:f7
+	fixture := []byte{2, 1, 161, 178, 195, 212, 230, 247}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}

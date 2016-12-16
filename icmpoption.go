@@ -55,7 +55,7 @@ func (o *ICMPOptionBase) Type() ICMPOptionType {
 	return o.optionType
 }
 
-// As defined inhttps://tools.ietf.org/html/rfc4861#section-4.6.1
+// As defined in https://tools.ietf.org/html/rfc4861#section-4.6.1
 type ICMPOptionSourceLinkLayerAddress struct {
 	*ICMPOptionBase
 	linkLayerAddress net.HardwareAddr
@@ -76,13 +76,23 @@ func (o *ICMPOptionSourceLinkLayerAddress) Len() uint8 {
 		return 0
 	}
 
+	// Source Link-Layer Address options' length
+	// depends on the length of the link-layer address
+	// but since we define net.HardwareAddr as its type
+	// in the struct, the length is always the same
 	return 1
 }
 
 // Marshal implements the Marshal method of ICMPOption interface.
 func (o *ICMPOptionSourceLinkLayerAddress) Marshal() ([]byte, error) {
-	// TODO: implement
-	return nil, nil
+	// option header
+	b := make([]byte, 2)
+	b[0] = byte(o.Type())
+	b[1] = byte(o.Len())
+	// option fields
+	b = append(b, o.linkLayerAddress...)
+
+	return b, nil
 }
 
 type ICMPOptionTargetLinkLayerAddress struct {
@@ -105,13 +115,23 @@ func (o *ICMPOptionTargetLinkLayerAddress) Len() uint8 {
 		return 0
 	}
 
+	// Target Link-Layer Address options' length
+	// depends on the length of the link-layer address
+	// but since we define net.HardwareAddr as its type
+	// in the struct, the length is always 1
 	return 1
 }
 
 // Marshal implements the Marshal method of ICMPOption interface.
 func (o *ICMPOptionTargetLinkLayerAddress) Marshal() ([]byte, error) {
-	// TODO : implement
-	return nil, nil
+	b := make([]byte, 2)
+	// option header
+	b[0] = byte(o.Type())
+	b[1] = byte(o.Len())
+	// option fields
+	b = append(b, o.linkLayerAddress...)
+
+	return b, nil
 }
 
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.6.2
