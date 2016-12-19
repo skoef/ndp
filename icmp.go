@@ -181,7 +181,7 @@ func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {
 	// message header
 	b[0] = uint8(p.Type())
 	// b[1] = code, always 0
-	// b[2:3] = checksum, TODO
+	// b[2:3] = checksum, calculated by kernel
 	// add options
 	om, err := p.optMarshal()
 	if err != nil {
@@ -234,7 +234,7 @@ func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
 	// message header
 	b[0] = uint8(p.Type())
 	// b[1] = code, always 0
-	// b[2:3] = checksum, TODO
+	// b[2:3] = checksum, calculated by kernel
 	b[4] ^= byte(p.HopLimit)
 	if p.ManagedAddress {
 		b[5] ^= 0x80
@@ -280,7 +280,7 @@ func (p *ICMPNeighborSolicitation) Marshal() ([]byte, error) {
 	// message header
 	b[0] = uint8(p.Type())
 	// b[1] = code, always 0
-	// b[2:3] = checksum, TODO
+	// b[2:3] = checksum, calculated by kernel
 	b = append(b, p.TargetAddress...)
 	// add options
 	om, err := p.optMarshal()
@@ -328,7 +328,7 @@ func (p *ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
 	// message header
 	b[0] = uint8(p.Type())
 	// b[1] = code, always 0
-	// b[2:3] = checksum, TODO
+	// b[2:3] = checksum, calculated by kernel
 	if p.Router {
 		b[4] ^= 0x80
 	}
