@@ -236,6 +236,7 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	icmp.RouterLifeTime = 3600
 	icmp.ReachableTime = 7200
 	icmp.RetransTimer = 1800
+	icmp.RouterPreference = RouterPreferenceHigh
 
 	if icmp.Type() != ipv6.ICMPTypeRouterAdvertisement {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeRouterAdvertisement)
@@ -246,7 +247,7 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Error(err)
 	}
 
-	fixture := []byte{134, 0, 0, 0, 64, 224, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8}
+	fixture := []byte{134, 0, 0, 0, 64, 232, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
@@ -283,7 +284,7 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Error(err)
 	}
 
-	fixture = []byte{134, 0, 0, 0, 64, 224, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8, 25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136}
+	fixture = []byte{134, 0, 0, 0, 64, 232, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8, 25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
@@ -312,7 +313,7 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Error(err)
 	}
 
-	fixture = []byte{134, 0, 0, 0, 64, 224, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8, 25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136, 5, 1, 0, 0, 0, 0, 5, 220}
+	fixture = []byte{134, 0, 0, 0, 64, 232, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8, 25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136, 5, 1, 0, 0, 0, 0, 5, 220}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}

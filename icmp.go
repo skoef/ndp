@@ -130,6 +130,11 @@ func ParseMessage(b []byte) (ICMP, error) {
 		if b[5]&0x20 > 0 {
 			message.(*ICMPRouterAdvertisement).HomeAgent = true
 		}
+		if b[5]&0x10 > 0 && b[5]&0x8 > 0 {
+			message.(*ICMPRouterAdvertisement).RouterPreference = RouterPreferenceLow
+		} else if b[5]&0x08 > 0 {
+			message.(*ICMPRouterAdvertisement).RouterPreference = RouterPreferenceHigh
+		}
 
 		if len(b) > 16 {
 			options, err := parseOptions(b[16:])
@@ -227,16 +232,26 @@ func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {
 	return b, nil
 }
 
+type RouterPreferenceField int
+
+// As defined in https://tools.ietf.org/html/rfc4191#section-2.1
+const (
+	RouterPreferenceMedium RouterPreferenceField = 0 // 00
+	RouterPreferenceHigh   RouterPreferenceField = 1 // 01
+	RouterPreferenceLow    RouterPreferenceField = 3 // 11
+)
+
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.2
 type ICMPRouterAdvertisement struct {
 	*ICMPBase
-	HopLimit       uint8
-	ManagedAddress bool
-	OtherStateful  bool
-	HomeAgent      bool
-	RouterLifeTime uint16
-	ReachableTime  uint32
-	RetransTimer   uint32
+	HopLimit         uint8
+	ManagedAddress   bool
+	OtherStateful    bool
+	HomeAgent        bool
+	RouterPreference RouterPreferenceField
+	RouterLifeTime   uint16
+	ReachableTime    uint32
+	RetransTimer     uint32
 }
 
 func (p *ICMPRouterAdvertisement) String() string {
@@ -279,6 +294,13 @@ func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
 	}
 	if p.HomeAgent {
 		b[5] ^= 0x20
+	}
+	// medium is 00, which is default
+	switch p.RouterPreference {
+	case RouterPreferenceLow:
+		b[5] ^= 0x18
+	case RouterPreferenceHigh:
+		b[5] ^= 0x08
 	}
 	binary.BigEndian.PutUint16(b[6:8], uint16(p.RouterLifeTime))
 	binary.BigEndian.PutUint32(b[8:12], uint32(p.ReachableTime))
