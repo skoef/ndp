@@ -431,6 +431,11 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 		// add new option to array of options
 		icmpOptions = append(icmpOptions, currentOption)
 
+		// are we at the end of the byte slice
+		if len(b) <= int(optionLength*8) {
+			break
+		}
+
 		// chop off bytes for this option
 		b = b[(optionLength * 8):]
 	}
