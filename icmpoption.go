@@ -297,7 +297,7 @@ func (o *ICMPOptionDNSSearchList) Len() uint8 {
 		return 0
 	}
 
-	return 1 + uint8(len(o.DomainNames)*3)
+	return 2 + uint8(len(o.DomainNames)*2)
 }
 
 // Marshal implements the Marshal method of ICMPOption interface.
@@ -308,9 +308,7 @@ func (o *ICMPOptionDNSSearchList) Marshal() ([]byte, error) {
 	b[1] = byte(o.Len())
 	// option fields
 	binary.BigEndian.PutUint32(b[4:8], uint32(o.Lifetime))
-	for _, d := range o.DomainNames {
-		b = append(b, encDomainName(d)...)
-	}
+	b = append(b, encDomainName(o.DomainNames)...)
 
 	return b, nil
 }
@@ -422,7 +420,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 
 			var domainNames []string
 			for i := 8; i < (int(optionLength) * 8); i += 24 {
-				domainNames = append(domainNames, absDomainName(b[i:(i+24)]))
+				domainNames = append(domainNames, decDomainName(b[i:(i+24)]))
 			}
 
 			currentOption.(*ICMPOptionDNSSearchList).DomainNames = domainNames

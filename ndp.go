@@ -3,7 +3,7 @@ package ndp
 import "strings"
 
 // inspired by golang.org/net/dnsclient.go's absDomainName
-func absDomainName(b []byte) string {
+func decDomainName(b []byte) string {
 	name := ""
 	start := 0
 	for {
@@ -26,16 +26,38 @@ func absDomainName(b []byte) string {
 	return name
 }
 
-func encDomainName(n string) []byte {
+// encode domain names as defined in RFC 1035 Section 3.1
+func encDomainName(dn []string) []byte {
 	b := make([]byte, 0)
-	// loop over each part of the domain name
-	for _, p := range strings.Split(n, ".") {
-		// length for this part
-		b = append(b, uint8(len(p)))
-		// append bytes for this part
-		b = append(b, []byte(p)...)
+	// loop over given domain names
+	for _, n := range dn {
+		// loop over each part of the domain name
+		for _, p := range strings.Split(n, ".") {
+			lab := make([]byte, 0)
+			// length for this part
+			lab = append(lab, uint8(len(p)))
+			// append bytes for this part
+			lab = append(lab, []byte(p)...)
+
+			// cap label on 63 octets
+			if len(lab) > 63 {
+				lab = lab[:63]
+			}
+
+			b = append(b, lab...)
+		}
 	}
-	// length 0 and 0 body for ending .
-	b = append(b, 0, 0)
+
+	// pad encoding until it's a multiple of octets
+	pad := (8 - (len(b) % 8))
+	for i := 0; i < pad; i++ {
+		b = append(b, 0)
+	}
+
+	// cap encoding on 255 octets
+	if len(b) > 255 {
+		return b[:255]
+	}
+
 	return b
 }
