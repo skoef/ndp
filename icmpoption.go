@@ -22,7 +22,6 @@ const (
 	ICMPOptionTypeSourceLinkLayerAddress ICMPOptionType = 1
 	ICMPOptionTypeTargetLinkLayerAddress ICMPOptionType = 2
 	ICMPOptionTypePrefixInformation      ICMPOptionType = 3
-	ICMPOptionTypeRedirectedHeader       ICMPOptionType = 4
 	ICMPOptionTypeMTU                    ICMPOptionType = 5
 	ICMPOptionTypeRecursiveDNSServer     ICMPOptionType = 25
 	ICMPOptionTypeDNSSearchList          ICMPOptionType = 31
@@ -33,7 +32,6 @@ var icmpOptionTypes = map[ICMPOptionType]string{
 	1: "source link-layer address",
 	2: "target link-layer Address",
 	3: "prefix info",
-	4: "redirected header",
 	5: "mtu",
 	// https://tools.ietf.org/html/rfc6106#section-5
 	25: "rdnss",

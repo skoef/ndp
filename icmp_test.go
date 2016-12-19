@@ -166,58 +166,18 @@ func TestICMPRouterAdvertismentMarshal(t *testing.T) {
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
-}
 
-func TestICMPRedirect(t *testing.T) {
-	icmp := &ICMPRedirect{
-		ICMPBase: &ICMPBase{
-			icmpType: ipv6.ICMPTypeRedirect,
-		},
-		TargetAddress:      net.ParseIP("fe80::1"),
-		DestinationAddress: net.ParseIP("fe80::2"),
-	}
-
-	if icmp.Type() != ipv6.ICMPTypeRedirect {
-		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeRedirect)
-	}
-
-	marshal, err := icmp.Marshal()
+	parsed_icmp, err = ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	fixture := []byte{137, 0, 0, 0, 0, 0, 0, 0, 254, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 254, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2}
-	if bytes.Compare(marshal, fixture) != 0 {
-		t.Errorf("fixture of %v did not match %v", fixture, marshal)
-	}
-
-	descfix := "redirect message, length 40, redirect fe80::1 to fe80::2"
-	desc := icmp.String()
-	if strings.Compare(desc, descfix) != 0 {
-		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
-	}
-
-	// add option
-	option := &ICMPOptionTargetLinkLayerAddress{
-		ICMPOptionBase: &ICMPOptionBase{
-			optionType: ICMPOptionTypeTargetLinkLayerAddress,
-		},
-	}
-
-	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
+	parsed_marshal, err = parsed_icmp.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	icmp.Options = []ICMPOption{option}
-
-	marshal, err = icmp.Marshal()
-	if err != nil {
-		t.Error(err)
-	}
-
-	fixture = []byte{137, 0, 0, 0, 0, 0, 0, 0, 254, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 254, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 161, 178, 195, 212, 229, 246}
-	if bytes.Compare(marshal, fixture) != 0 {
-		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	if bytes.Compare(parsed_marshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
 	}
 }
