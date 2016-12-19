@@ -51,6 +51,12 @@ func TestICMPOptionDNSSearchList(t *testing.T) {
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of \n%v (%d) did not match \n%v (%d)", fixture, len(fixture), marshal, len(marshal))
 	}
+
+	descfix := "dnssl option (31), length 48 (6): lifetime 10s, domain(s) basement.golang.org., golang.org."
+	desc := option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
 }
 
 func TestICMPOptionMTU(t *testing.T) {
