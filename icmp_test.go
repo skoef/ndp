@@ -10,15 +10,11 @@ import (
 )
 
 func TestICMPNeighborAdvertisement(t *testing.T) {
-	icmp := &ICMPNeighborAdvertisement{
-		ICMPBase: &ICMPBase{
-			ICMPType: ipv6.ICMPTypeNeighborAdvertisement,
-		},
-		Router:        true,
-		Solicited:     true,
-		Override:      true,
-		TargetAddress: net.ParseIP("fe80::1"),
-	}
+	icmp := NewICMP(ipv6.ICMPTypeNeighborAdvertisement).(*ICMPNeighborAdvertisement)
+	icmp.Router = true
+	icmp.Solicited = true
+	icmp.Override = true
+	icmp.TargetAddress = net.ParseIP("fe80::1")
 
 	if icmp.Type() != ipv6.ICMPTypeNeighborAdvertisement {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeNeighborAdvertisement)
@@ -55,12 +51,7 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 	}
 
 	// add option
-	option := &ICMPOptionTargetLinkLayerAddress{
-		ICMPOptionBase: &ICMPOptionBase{
-			optionType: ICMPOptionTypeTargetLinkLayerAddress,
-		},
-	}
-
+	option := NewICMPOption(ICMPOptionTypeTargetLinkLayerAddress).(*ICMPOptionTargetLinkLayerAddress)
 	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
 	if err != nil {
 		t.Error(err)
@@ -94,12 +85,8 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 }
 
 func TestICMPNeighborSolicitation(t *testing.T) {
-	icmp := &ICMPNeighborSolicitation{
-		ICMPBase: &ICMPBase{
-			ICMPType: ipv6.ICMPTypeNeighborSolicitation,
-		},
-		TargetAddress: net.ParseIP("fe80::1"),
-	}
+	icmp := NewICMP(ipv6.ICMPTypeNeighborSolicitation).(*ICMPNeighborSolicitation)
+	icmp.TargetAddress = net.ParseIP("fe80::1")
 
 	if icmp.Type() != ipv6.ICMPTypeNeighborSolicitation {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeNeighborSolicitation)
@@ -136,12 +123,7 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 	}
 
 	// add option
-	option := &ICMPOptionSourceLinkLayerAddress{
-		ICMPOptionBase: &ICMPOptionBase{
-			optionType: ICMPOptionTypeSourceLinkLayerAddress,
-		},
-	}
-
+	option := NewICMPOption(ICMPOptionTypeSourceLinkLayerAddress).(*ICMPOptionSourceLinkLayerAddress)
 	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
 	if err != nil {
 		t.Error(err)
@@ -175,11 +157,7 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 }
 
 func TestICMPRouterSolicitation(t *testing.T) {
-	icmp := &ICMPRouterSolicitation{
-		ICMPBase: &ICMPBase{
-			ICMPType: ipv6.ICMPTypeRouterSolicitation,
-		},
-	}
+	icmp := NewICMP(ipv6.ICMPTypeRouterSolicitation).(*ICMPRouterSolicitation)
 
 	if icmp.Type() != ipv6.ICMPTypeRouterSolicitation {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeRouterSolicitation)
@@ -216,12 +194,7 @@ func TestICMPRouterSolicitation(t *testing.T) {
 	}
 
 	// add option
-	option := &ICMPOptionSourceLinkLayerAddress{
-		ICMPOptionBase: &ICMPOptionBase{
-			optionType: ICMPOptionTypeSourceLinkLayerAddress,
-		},
-	}
-
+	option := NewICMPOption(ICMPOptionTypeSourceLinkLayerAddress).(*ICMPOptionSourceLinkLayerAddress)
 	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
 	if err != nil {
 		t.Error(err)
@@ -255,18 +228,14 @@ func TestICMPRouterSolicitation(t *testing.T) {
 }
 
 func TestICMPRouterAdvertisement(t *testing.T) {
-	icmp := &ICMPRouterAdvertisement{
-		ICMPBase: &ICMPBase{
-			ICMPType: ipv6.ICMPTypeRouterAdvertisement,
-		},
-		HopLimit:       64,
-		ManagedAddress: true,
-		OtherStateful:  true,
-		HomeAgent:      true,
-		RouterLifeTime: uint16(3600),
-		ReachableTime:  uint32(7200),
-		RetransTimer:   uint32(1800),
-	}
+	icmp := NewICMP(ipv6.ICMPTypeRouterAdvertisement).(*ICMPRouterAdvertisement)
+	icmp.HopLimit = 64
+	icmp.ManagedAddress = true
+	icmp.OtherStateful = true
+	icmp.HomeAgent = true
+	icmp.RouterLifeTime = 3600
+	icmp.ReachableTime = 7200
+	icmp.RetransTimer = 1800
 
 	if icmp.Type() != ipv6.ICMPTypeRouterAdvertisement {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeRouterAdvertisement)
@@ -303,13 +272,10 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	}
 
 	// add option
-	icmp.Options = []ICMPOption{&ICMPOptionRecursiveDNSServer{
-		ICMPOptionBase: &ICMPOptionBase{
-			optionType: ICMPOptionTypeRecursiveDNSServer,
-		},
-		Lifetime: 300,
-		Servers:  []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")},
-	}}
+	option := NewICMPOption(ICMPOptionTypeRecursiveDNSServer).(*ICMPOptionRecursiveDNSServer)
+	option.Lifetime = 300
+	option.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")}
+	icmp.Options = []ICMPOption{option}
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
@@ -336,12 +302,9 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	}
 
 	// add another option
-	icmp.Options = append(icmp.Options, &ICMPOptionMTU{
-		ICMPOptionBase: &ICMPOptionBase{
-			optionType: ICMPOptionTypeMTU,
-		},
-		MTU: 1500,
-	})
+	another_option := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
+	another_option.MTU = 1500
+	icmp.Options = []ICMPOption{option, another_option}
 
 	marshal, err = icmp.Marshal()
 	if err != nil {

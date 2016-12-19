@@ -21,6 +21,37 @@ type ICMP interface {
 	optMarshal() ([]byte, error)
 }
 
+func NewICMP(icmpType ipv6.ICMPType) ICMP {
+	switch icmpType {
+	case ipv6.ICMPTypeRouterAdvertisement:
+		return &ICMPRouterAdvertisement{
+			ICMPBase: &ICMPBase{
+				ICMPType: ipv6.ICMPTypeRouterAdvertisement,
+			},
+		}
+	case ipv6.ICMPTypeRouterSolicitation:
+		return &ICMPRouterSolicitation{
+			ICMPBase: &ICMPBase{
+				ICMPType: ipv6.ICMPTypeRouterSolicitation,
+			},
+		}
+	case ipv6.ICMPTypeNeighborAdvertisement:
+		return &ICMPNeighborAdvertisement{
+			ICMPBase: &ICMPBase{
+				ICMPType: ipv6.ICMPTypeNeighborAdvertisement,
+			},
+		}
+	case ipv6.ICMPTypeNeighborSolicitation:
+		return &ICMPNeighborSolicitation{
+			ICMPBase: &ICMPBase{
+				ICMPType: ipv6.ICMPTypeNeighborSolicitation,
+			},
+		}
+	default:
+		return nil
+	}
+}
+
 type ICMPBase struct {
 	ICMPType ipv6.ICMPType
 	Options  []ICMPOption
