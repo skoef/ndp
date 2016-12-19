@@ -158,7 +158,7 @@ func ParseMessage(b []byte) (ICMP, error) {
 		return message, nil
 
 	default:
-		return nil, nil
+		return nil, fmt.Errorf("message with type %d not supported", icmpType)
 	}
 }
 
