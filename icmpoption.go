@@ -46,7 +46,6 @@ type ICMPOption interface {
 
 type ICMPOptionBase struct {
 	optionType ICMPOptionType
-	length     uint8
 }
 
 func (o *ICMPOptionBase) Type() ICMPOptionType {
@@ -334,7 +333,6 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			currentOption = &ICMPOptionSourceLinkLayerAddress{
 				ICMPOptionBase: &ICMPOptionBase{
 					optionType: optionType,
-					length:     optionLength,
 				},
 				LinkLayerAddress: b[2:8],
 			}
@@ -347,7 +345,6 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			currentOption = &ICMPOptionTargetLinkLayerAddress{
 				ICMPOptionBase: &ICMPOptionBase{
 					optionType: optionType,
-					length:     optionLength,
 				},
 				LinkLayerAddress: b[2:8],
 			}
@@ -360,7 +357,6 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			currentOption = &ICMPOptionPrefixInformation{
 				ICMPOptionBase: &ICMPOptionBase{
 					optionType: optionType,
-					length:     optionLength,
 				},
 				PrefixLength:      uint8(b[2]),
 				OnLink:            (b[3]&0x80 > 0),
@@ -378,7 +374,6 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			currentOption = &ICMPOptionMTU{
 				ICMPOptionBase: &ICMPOptionBase{
 					optionType: optionType,
-					length:     optionLength,
 				},
 				MTU: binary.BigEndian.Uint32(b[4:8]),
 			}
@@ -391,7 +386,6 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			currentOption = &ICMPOptionRecursiveDNSServer{
 				ICMPOptionBase: &ICMPOptionBase{
 					optionType: optionType,
-					length:     optionLength,
 				},
 				Lifetime: binary.BigEndian.Uint32(b[4:8]),
 			}
@@ -411,7 +405,6 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			currentOption = &ICMPOptionDNSSearchList{
 				ICMPOptionBase: &ICMPOptionBase{
 					optionType: optionType,
-					length:     optionLength,
 				},
 				Lifetime: binary.BigEndian.Uint32(b[4:8]),
 			}
