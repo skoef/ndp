@@ -22,13 +22,12 @@ type ICMP interface {
 }
 
 type ICMPBase struct {
-	icmpType ipv6.ICMPType
-	length   uint8
+	ICMPType ipv6.ICMPType
 	Options  []ICMPOption
 }
 
 func (p *ICMPBase) Type() ipv6.ICMPType {
-	return p.icmpType
+	return p.ICMPType
 }
 
 func (p *ICMPBase) optMarshal() ([]byte, error) {
@@ -57,7 +56,7 @@ func ParseMessage(b []byte) (ICMP, error) {
 	case ipv6.ICMPTypeRouterSolicitation:
 		message = &ICMPRouterSolicitation{
 			ICMPBase: &ICMPBase{
-				icmpType: icmpType,
+				ICMPType: icmpType,
 			},
 		}
 
@@ -75,7 +74,7 @@ func ParseMessage(b []byte) (ICMP, error) {
 	case ipv6.ICMPTypeRouterAdvertisement:
 		message = &ICMPRouterAdvertisement{
 			ICMPBase: &ICMPBase{
-				icmpType: icmpType,
+				ICMPType: icmpType,
 			},
 			HopLimit:       uint8(b[4]),
 			ManagedAddress: false,
@@ -111,7 +110,7 @@ func ParseMessage(b []byte) (ICMP, error) {
 	case ipv6.ICMPTypeNeighborSolicitation:
 		message = &ICMPNeighborSolicitation{
 			ICMPBase: &ICMPBase{
-				icmpType: icmpType,
+				ICMPType: icmpType,
 			},
 			TargetAddress: b[8:24],
 		}
@@ -130,7 +129,7 @@ func ParseMessage(b []byte) (ICMP, error) {
 	case ipv6.ICMPTypeNeighborAdvertisement:
 		message = &ICMPNeighborAdvertisement{
 			ICMPBase: &ICMPBase{
-				icmpType: icmpType,
+				ICMPType: icmpType,
 			},
 			TargetAddress: b[8:24],
 		}

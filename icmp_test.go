@@ -12,7 +12,7 @@ import (
 func TestICMPNeighborAdvertisement(t *testing.T) {
 	icmp := &ICMPNeighborAdvertisement{
 		ICMPBase: &ICMPBase{
-			icmpType: ipv6.ICMPTypeNeighborAdvertisement,
+			ICMPType: ipv6.ICMPTypeNeighborAdvertisement,
 		},
 		Router:        true,
 		Solicited:     true,
@@ -96,7 +96,7 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 func TestICMPNeighborSolicitation(t *testing.T) {
 	icmp := &ICMPNeighborSolicitation{
 		ICMPBase: &ICMPBase{
-			icmpType: ipv6.ICMPTypeNeighborSolicitation,
+			ICMPType: ipv6.ICMPTypeNeighborSolicitation,
 		},
 		TargetAddress: net.ParseIP("fe80::1"),
 	}
@@ -177,7 +177,7 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 func TestICMPRouterSolicitation(t *testing.T) {
 	icmp := &ICMPRouterSolicitation{
 		ICMPBase: &ICMPBase{
-			icmpType: ipv6.ICMPTypeRouterSolicitation,
+			ICMPType: ipv6.ICMPTypeRouterSolicitation,
 		},
 	}
 
@@ -257,7 +257,7 @@ func TestICMPRouterSolicitation(t *testing.T) {
 func TestICMPRouterAdvertisement(t *testing.T) {
 	icmp := &ICMPRouterAdvertisement{
 		ICMPBase: &ICMPBase{
-			icmpType: ipv6.ICMPTypeRouterAdvertisement,
+			ICMPType: ipv6.ICMPTypeRouterAdvertisement,
 		},
 		HopLimit:       64,
 		ManagedAddress: true,
