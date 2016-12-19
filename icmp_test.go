@@ -9,6 +9,90 @@ import (
 	"golang.org/x/net/ipv6"
 )
 
+func TestICMPNeighborAdvertisement(t *testing.T) {
+	icmp := &ICMPNeighborAdvertisement{
+		ICMPBase: &ICMPBase{
+			icmpType: ipv6.ICMPTypeNeighborAdvertisement,
+		},
+		Router:        true,
+		Solicited:     true,
+		Override:      true,
+		TargetAddress: net.ParseIP("fe80::1"),
+	}
+
+	if icmp.Type() != ipv6.ICMPTypeNeighborAdvertisement {
+		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeNeighborAdvertisement)
+	}
+
+	marshal, err := icmp.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture := []byte{136, 0, 0, 0, 224, 0, 0, 0, 254, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix := "neighbor advertisement, length 24, tgt is fe80::1, Flags [router solicited override]"
+	desc := icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
+	parsed_icmp, err := ParseMessage(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
+	parsed_marshal, err := parsed_icmp.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if bytes.Compare(parsed_marshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	}
+
+	// add option
+	option := &ICMPOptionTargetLinkLayerAddress{
+		ICMPOptionBase: &ICMPOptionBase{
+			optionType: ICMPOptionTypeTargetLinkLayerAddress,
+		},
+	}
+
+	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
+	if err != nil {
+		t.Error(err)
+	}
+
+	icmp.Options = []ICMPOption{option}
+
+	marshal, err = icmp.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture = []byte{136, 0, 0, 0, 224, 0, 0, 0, 254, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 161, 178, 195, 212, 229, 246}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	parsed_icmp, err = ParseMessage(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
+	parsed_marshal, err = parsed_icmp.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if bytes.Compare(parsed_marshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	}
+}
+
 func TestICMPNeighborSolicitation(t *testing.T) {
 	icmp := &ICMPNeighborSolicitation{
 		ICMPBase: &ICMPBase{

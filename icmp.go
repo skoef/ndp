@@ -331,13 +331,13 @@ func (p *ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
 	// b[1] = code, always 0
 	// b[2:3] = checksum, TODO
 	if p.Router {
-		b[3] ^= 0x80
+		b[4] ^= 0x80
 	}
 	if p.Solicited {
-		b[3] ^= 0x40
+		b[4] ^= 0x40
 	}
 	if p.Override {
-		b[3] ^= 0x20
+		b[4] ^= 0x20
 	}
 	b = append(b, p.TargetAddress...)
 	// add options
