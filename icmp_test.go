@@ -57,7 +57,7 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 		t.Error(err)
 	}
 
-	icmp.Options = []ICMPOption{option}
+	icmp.AddOption(option)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
@@ -129,7 +129,7 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 		t.Error(err)
 	}
 
-	icmp.Options = []ICMPOption{option}
+	icmp.AddOption(option)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
@@ -200,7 +200,7 @@ func TestICMPRouterSolicitation(t *testing.T) {
 		t.Error(err)
 	}
 
-	icmp.Options = []ICMPOption{option}
+	icmp.AddOption(option)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
@@ -275,7 +275,8 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	option := NewICMPOption(ICMPOptionTypeRecursiveDNSServer).(*ICMPOptionRecursiveDNSServer)
 	option.Lifetime = 300
 	option.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")}
-	icmp.Options = []ICMPOption{option}
+
+	icmp.AddOption(option)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
@@ -304,7 +305,7 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	// add another option
 	another_option := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
 	another_option.MTU = 1500
-	icmp.Options = []ICMPOption{option, another_option}
+	icmp.AddOption(another_option)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {

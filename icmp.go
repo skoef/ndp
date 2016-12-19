@@ -75,6 +75,10 @@ func (p *ICMPBase) optMarshal() ([]byte, error) {
 	return b, nil
 }
 
+func (p *ICMPBase) AddOption(o ICMPOption) {
+	p.Options = append(p.Options, o)
+}
+
 func ParseMessage(b []byte) (ICMP, error) {
 	if len(b) < 4 {
 		return nil, errMessageTooShort
