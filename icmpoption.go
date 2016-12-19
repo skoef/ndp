@@ -44,6 +44,55 @@ type ICMPOption interface {
 	Marshal() ([]byte, error)
 }
 
+func NewICMPOption(optionType ICMPOptionType) ICMPOption {
+	switch optionType {
+	case ICMPOptionTypeSourceLinkLayerAddress:
+		return &ICMPOptionSourceLinkLayerAddress{
+			ICMPOptionBase: &ICMPOptionBase{
+				optionType: ICMPOptionTypeSourceLinkLayerAddress,
+			},
+		}
+
+	case ICMPOptionTypeTargetLinkLayerAddress:
+		return &ICMPOptionTargetLinkLayerAddress{
+			ICMPOptionBase: &ICMPOptionBase{
+				optionType: ICMPOptionTypeTargetLinkLayerAddress,
+			},
+		}
+
+	case ICMPOptionTypePrefixInformation:
+		return &ICMPOptionPrefixInformation{
+			ICMPOptionBase: &ICMPOptionBase{
+				optionType: ICMPOptionTypePrefixInformation,
+			},
+		}
+
+	case ICMPOptionTypeMTU:
+		return &ICMPOptionMTU{
+			ICMPOptionBase: &ICMPOptionBase{
+				optionType: ICMPOptionTypeMTU,
+			},
+		}
+
+	case ICMPOptionTypeRecursiveDNSServer:
+		return &ICMPOptionRecursiveDNSServer{
+			ICMPOptionBase: &ICMPOptionBase{
+				optionType: ICMPOptionTypeRecursiveDNSServer,
+			},
+		}
+
+	case ICMPOptionTypeDNSSearchList:
+		return &ICMPOptionDNSSearchList{
+			ICMPOptionBase: &ICMPOptionBase{
+				optionType: ICMPOptionTypeDNSSearchList,
+			},
+		}
+
+	default:
+		return nil
+	}
+}
+
 type ICMPOptionBase struct {
 	optionType ICMPOptionType
 }
