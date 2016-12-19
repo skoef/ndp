@@ -36,6 +36,12 @@ func TestICMPOptionDNSSearchList(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 
+	descfix := "dnssl option (31), length 32 (4): lifetime 10s, domain(s) basement.golang.org."
+	desc := option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
 	// check with multiple domain names
 	option.DomainNames = []string{"basement.golang.org.", "golang.org."}
 	if option.Len() != 6 {
@@ -52,8 +58,8 @@ func TestICMPOptionDNSSearchList(t *testing.T) {
 		t.Errorf("fixture of \n%v (%d) did not match \n%v (%d)", fixture, len(fixture), marshal, len(marshal))
 	}
 
-	descfix := "dnssl option (31), length 48 (6): lifetime 10s, domain(s) basement.golang.org., golang.org."
-	desc := option.String()
+	descfix = "dnssl option (31), length 48 (6): lifetime 10s, domain(s) basement.golang.org., golang.org."
+	desc = option.String()
 	if strings.Compare(desc, descfix) != 0 {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
