@@ -418,12 +418,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 				Lifetime: binary.BigEndian.Uint32(b[4:8]),
 			}
 
-			var domainNames []string
-			for i := 8; i < (int(optionLength) * 8); i += 24 {
-				domainNames = append(domainNames, decDomainName(b[i:(i+24)]))
-			}
-
-			currentOption.(*ICMPOptionDNSSearchList).DomainNames = domainNames
+			currentOption.(*ICMPOptionDNSSearchList).DomainNames = decDomainName(b[8:])
 
 		default:
 			return nil, fmt.Errorf("unhandled ICMPv6 option type %d", optionType)

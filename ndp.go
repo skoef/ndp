@@ -3,27 +3,27 @@ package ndp
 import "strings"
 
 // inspired by golang.org/net/dnsclient.go's absDomainName
-func decDomainName(b []byte) string {
-	name := ""
-	start := 0
+func decDomainName(b []byte) []string {
+	names := []string{}
+	labels := []string{}
 	for {
-		length := int(b[start])
+		// go over each label
+		length := int(b[0])
+		// extract new label
 		if length > 0 {
-			name += string(b[start+1:(start+length+1)]) + "."
+			labels = append(labels, string(b[1:(length+1)]))
+			// on null byte, join current labels and add to array
+		} else if len(labels) > 0 {
+			names = append(names, strings.Join(labels, ".")+".")
+			labels = []string{}
 		}
-
-		start += (length + 1)
-		if start >= len(b) {
+		b = b[(length + 1):]
+		if len(b) == 0 {
 			break
 		}
 	}
 
-	// make sure we end with a dot
-	if !strings.HasSuffix(name, ".") {
-		name += "."
-	}
-
-	return name
+	return names
 }
 
 // encode domain names as defined in RFC 1035 Section 3.1
