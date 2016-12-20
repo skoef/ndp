@@ -272,12 +272,12 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
 	}
 
-	// add option
-	option := NewICMPOption(ICMPOptionTypeRecursiveDNSServer).(*ICMPOptionRecursiveDNSServer)
-	option.Lifetime = 300
-	option.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")}
+	// add RDNSS option
+	dnss_option := NewICMPOption(ICMPOptionTypeRecursiveDNSServer).(*ICMPOptionRecursiveDNSServer)
+	dnss_option.Lifetime = 300
+	dnss_option.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")}
 
-	icmp.AddOption(option)
+	icmp.AddOption(dnss_option)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
@@ -303,17 +303,34 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
 	}
 
-	// add another option
-	another_option := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
-	another_option.MTU = 1500
-	icmp.AddOption(another_option)
+	// add DNSSL option
+	dnssl_option := NewICMPOption(ICMPOptionTypeDNSSearchList).(*ICMPOptionDNSSearchList)
+	dnssl_option.Lifetime = 10
+	dnssl_option.DomainNames = []string{"basement.golang.org."}
+
+	icmp.AddOption(dnssl_option)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	fixture = []byte{134, 0, 0, 0, 64, 232, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8, 25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136, 5, 1, 0, 0, 0, 0, 5, 220}
+	fixture = []byte{134, 0, 0, 0, 64, 232, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8, 25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136, 31, 4, 0, 0, 0, 0, 0, 10, 8, 98, 97, 115, 101, 109, 101, 110, 116, 6, 103, 111, 108, 97, 110, 103, 3, 111, 114, 103, 0, 0, 0, 0}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	// add MTU option
+	mtu_option := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
+	mtu_option.MTU = 1500
+	icmp.AddOption(mtu_option)
+
+	marshal, err = icmp.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture = []byte{134, 0, 0, 0, 64, 232, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8, 25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136, 31, 4, 0, 0, 0, 0, 0, 10, 8, 98, 97, 115, 101, 109, 101, 110, 116, 6, 103, 111, 108, 97, 110, 103, 3, 111, 114, 103, 0, 0, 0, 0, 5, 1, 0, 0, 0, 0, 5, 220}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}

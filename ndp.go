@@ -4,6 +4,10 @@ import "strings"
 
 // inspired by golang.org/net/dnsclient.go's absDomainName
 func decDomainName(b []byte) []string {
+	if len(b) == 0 {
+		return nil
+	}
+
 	names := []string{}
 	labels := []string{}
 	for {
