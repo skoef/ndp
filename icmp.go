@@ -7,6 +7,7 @@ import (
 	"net"
 	"strings"
 
+	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv6"
 )
 
@@ -59,6 +60,43 @@ type ICMPBase struct {
 
 func (p *ICMPBase) Type() ipv6.ICMPType {
 	return p.ICMPType
+}
+
+func Checksum(body *[]byte, srcIP, dstIP net.IP) error {
+	// from golang.org/x/net/icmp/message.go
+	checksum := func(b []byte) uint16 {
+		csumcv := len(b) - 1 // checksum coverage
+		s := uint32(0)
+		for i := 0; i < csumcv; i += 2 {
+			s += uint32(b[i+1])<<8 | uint32(b[i])
+		}
+		if csumcv&1 == 0 {
+			s += uint32(b[csumcv])
+		}
+		s = s>>16 + s&0xffff
+		s = s + s>>16
+		return ^uint16(s)
+	}
+
+	b := *body
+
+	// remember origin length
+	l := len(b)
+	// generate pseudo header
+	psh := icmp.IPv6PseudoHeader(srcIP, dstIP)
+	// concat psh with b
+	b = append(psh, b...)
+	// set length of total packet
+	off := 2 * net.IPv6len
+	binary.BigEndian.PutUint32(b[off:off+4], uint32(l))
+	// calculate checksum
+	s := checksum(b)
+	// set checksum in bytes and return original Body
+	b[len(psh)+2] ^= byte(s)
+	b[len(psh)+3] ^= byte(s >> 8)
+
+	*body = b[len(psh):]
+	return nil
 }
 
 func (p *ICMPBase) optMarshal() ([]byte, error) {
@@ -221,7 +259,7 @@ func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {
 	// message header
 	b[0] = uint8(p.Type())
 	// b[1] = code, always 0
-	// b[2:3] = checksum, calculated by kernel
+	// b[2:3] = checksum, calculated separately
 	// add options
 	om, err := p.optMarshal()
 	if err != nil {
@@ -284,7 +322,7 @@ func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
 	// message header
 	b[0] = uint8(p.Type())
 	// b[1] = code, always 0
-	// b[2:3] = checksum, calculated by kernel
+	// b[2:3] = checksum, calculated separately
 	b[4] ^= byte(p.HopLimit)
 	if p.ManagedAddress {
 		b[5] ^= 0x80
@@ -337,7 +375,7 @@ func (p *ICMPNeighborSolicitation) Marshal() ([]byte, error) {
 	// message header
 	b[0] = uint8(p.Type())
 	// b[1] = code, always 0
-	// b[2:3] = checksum, calculated by kernel
+	// b[2:3] = checksum, calculated separately
 	b = append(b, p.TargetAddress...)
 	// add options
 	om, err := p.optMarshal()
@@ -385,7 +423,7 @@ func (p *ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
 	// message header
 	b[0] = uint8(p.Type())
 	// b[1] = code, always 0
-	// b[2:3] = checksum, calculated by kernel
+	// b[2:3] = checksum, calculated separately
 	if p.Router {
 		b[4] ^= 0x80
 	}

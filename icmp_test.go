@@ -349,3 +349,59 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
 	}
 }
+
+func TestChecksum(t *testing.T) {
+	// prepare icmp message
+	msg := NewICMP(ipv6.ICMPTypeRouterAdvertisement).(*ICMPRouterAdvertisement)
+	msg.HopLimit = 64
+	msg.OtherStateful = true
+	msg.RouterLifeTime = 3600
+	msg.RouterPreference = RouterPreferenceHigh
+
+	marshal, err := msg.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture := []byte{134, 0, 0, 0, 64, 72, 14, 16, 0, 0, 0, 0, 0, 0, 0, 0}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	// check if checksum is calculated correctly
+	err = Checksum(&marshal, net.ParseIP("ff02::2"), net.ParseIP("ff02::1"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture = []byte{134, 0, 45, 84, 64, 72, 14, 16, 0, 0, 0, 0, 0, 0, 0, 0}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	// add MTU option
+	mtuOption := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
+	mtuOption.MTU = 1500
+	msg.AddOption(mtuOption)
+
+	marshal, err = msg.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture = []byte{134, 0, 0, 0, 64, 72, 14, 16, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1, 0, 0, 0, 0, 5, 220}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	// check if checksum is calculated correctly
+	err = Checksum(&marshal, net.ParseIP("ff02::2"), net.ParseIP("ff02::1"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture = []byte{134, 0, 34, 111, 64, 72, 14, 16, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1, 0, 0, 0, 0, 5, 220}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+}
