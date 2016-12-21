@@ -2,12 +2,33 @@ package ndp
 
 import (
 	"bytes"
+	"fmt"
 	"net"
 	"strings"
 	"testing"
 
 	"golang.org/x/net/ipv6"
 )
+
+func TestNewICMP(t *testing.T) {
+	msg := NewICMP(ipv6.ICMPTypeEchoRequest)
+	if msg != nil {
+		t.Error("unexpected handled type")
+	}
+}
+
+func TestParseMessage(t *testing.T) {
+	_, err := ParseMessage([]byte{0, 0, 0})
+	if err != errMessageTooShort {
+		t.Errorf("unexpected error message: %s", err)
+	}
+
+	_, err = ParseMessage([]byte{128, 0, 0, 0})
+	fixture := "message with type 128 not supported"
+	if strings.Compare(fmt.Sprintf("%s", err), fixture) != 0 {
+		t.Errorf("unexpected error message: %s", err)
+	}
+}
 
 func TestICMPNeighborAdvertisement(t *testing.T) {
 	icmp := NewICMP(ipv6.ICMPTypeNeighborAdvertisement).(*ICMPNeighborAdvertisement)
