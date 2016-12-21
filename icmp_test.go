@@ -69,6 +69,12 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 
+	descfix = "neighbor advertisement, length 32, tgt is fe80::1, Flags [router solicited override]\n    target link-layer Address option (2), length 8 (1): a1:b2:c3:d4:e5:f6"
+	desc = icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
 	parsed_icmp, err = ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
@@ -139,6 +145,12 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 	fixture = []byte{135, 0, 0, 0, 0, 0, 0, 0, 254, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 161, 178, 195, 212, 229, 246}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix = "neighbor solicitation, length 32, who has fe80::1\n    source link-layer address option (1), length 8 (1): a1:b2:c3:d4:e5:f6"
+	desc = icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
 	parsed_icmp, err = ParseMessage(fixture)
@@ -212,6 +224,12 @@ func TestICMPRouterSolicitation(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 
+	descfix = "router solicitation, length 16\n    source link-layer address option (1), length 8 (1): a1:b2:c3:d4:e5:f6"
+	desc = icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
 	parsed_icmp, err = ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
@@ -236,7 +254,6 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	icmp.RouterLifeTime = 3600
 	icmp.ReachableTime = 7200
 	icmp.RetransTimer = 1800
-	icmp.RouterPreference = RouterPreferenceHigh
 
 	if icmp.Type() != ipv6.ICMPTypeRouterAdvertisement {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeRouterAdvertisement)
@@ -247,13 +264,49 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Error(err)
 	}
 
-	fixture := []byte{134, 0, 0, 0, 64, 232, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8}
+	fixture := []byte{134, 0, 0, 0, 64, 224, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 
-	descfix := "router advertisement, length 16\n hop limit 64, Flags [managed other stateful home agent], router lifetime 3600s, reachable time 7200s, retrans time 1800s"
+	descfix := "router advertisement, length 16\n hop limit 64, Flags [managed other stateful home agent], pref medium, router lifetime 3600s, reachable time 7200s, retrans time 1800s"
 	desc := icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
+	// different router preference
+	icmp.RouterPreference = RouterPreferenceLow
+	marshal, err = icmp.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture = []byte{134, 0, 0, 0, 64, 248, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix = "router advertisement, length 16\n hop limit 64, Flags [managed other stateful home agent], pref low, router lifetime 3600s, reachable time 7200s, retrans time 1800s"
+	desc = icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
+	// different router preference
+	icmp.RouterPreference = RouterPreferenceHigh
+	marshal, err = icmp.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture = []byte{134, 0, 0, 0, 64, 232, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix = "router advertisement, length 16\n hop limit 64, Flags [managed other stateful home agent], pref high, router lifetime 3600s, reachable time 7200s, retrans time 1800s"
+	desc = icmp.String()
 	if strings.Compare(desc, descfix) != 0 {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
@@ -287,6 +340,12 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	fixture = []byte{134, 0, 0, 0, 64, 232, 14, 16, 0, 0, 28, 32, 0, 0, 7, 8, 25, 5, 0, 0, 0, 0, 1, 44, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 68, 32, 1, 72, 96, 72, 96, 0, 0, 0, 0, 0, 0, 0, 0, 136, 136}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix = "router advertisement, length 56\n hop limit 64, Flags [managed other stateful home agent], pref high, router lifetime 3600s, reachable time 7200s, retrans time 1800s\n    rdnss option (25), length 40 (5): lifetime 300s, addr: 2001:4860:4860::8844 addr: 2001:4860:4860::8888"
+	desc = icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
 	parsed_icmp, err = ParseMessage(fixture)

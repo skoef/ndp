@@ -279,6 +279,19 @@ const (
 	RouterPreferenceLow    RouterPreferenceField = 3 // 11
 )
 
+func (typ RouterPreferenceField) String() string {
+	switch typ {
+	case RouterPreferenceLow:
+		return "low"
+	case RouterPreferenceMedium:
+		return "medium"
+	case RouterPreferenceHigh:
+		return "high"
+	default:
+		return "<nil>"
+	}
+}
+
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.2
 type ICMPRouterAdvertisement struct {
 	*ICMPBase
@@ -307,6 +320,7 @@ func (p *ICMPRouterAdvertisement) String() string {
 		f = append(f, "home agent")
 	}
 	s += fmt.Sprintf("Flags %s, ", f)
+	s += fmt.Sprintf("pref %s, ", p.RouterPreference)
 	s += fmt.Sprintf("router lifetime %ds, ", p.RouterLifeTime)
 	s += fmt.Sprintf("reachable time %ds, ", p.ReachableTime)
 	s += fmt.Sprintf("retrans time %ds\n", p.RetransTimer)
