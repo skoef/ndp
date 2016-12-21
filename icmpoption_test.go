@@ -40,18 +40,22 @@ func TestICMPOptionDNSSearchList(t *testing.T) {
 
 	var options []ICMPOption
 	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if len(options) != 1 {
 		t.Errorf("parsed %d options instead of 1", len(options))
 	}
 
 	parsed := options[0].(*ICMPOptionDNSSearchList)
-	parsed_marshal, err := parsed.Marshal()
+	parsedMarshal, err := parsed.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 
 	// check with multiple domain names
@@ -77,18 +81,22 @@ func TestICMPOptionDNSSearchList(t *testing.T) {
 	}
 
 	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if len(options) != 1 {
 		t.Errorf("parsed %d options instead of 1", len(options))
 	}
 
 	parsed = options[0].(*ICMPOptionDNSSearchList)
-	parsed_marshal, err = parsed.Marshal()
+	parsedMarshal, err = parsed.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
 
@@ -124,18 +132,22 @@ func TestICMPOptionMTU(t *testing.T) {
 
 	var options []ICMPOption
 	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if len(options) != 1 {
 		t.Errorf("parsed %d options instead of 1", len(options))
 	}
 
 	parsed := options[0].(*ICMPOptionMTU)
-	parsed_marshal, err := parsed.Marshal()
+	parsedMarshal, err := parsed.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
 
@@ -175,18 +187,22 @@ func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
 
 	var options []ICMPOption
 	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if len(options) != 1 {
 		t.Errorf("parsed %d options instead of 1", len(options))
 	}
 
 	parsed := options[0].(*ICMPOptionSourceLinkLayerAddress)
-	parsed_marshal, err := parsed.Marshal()
+	parsedMarshal, err := parsed.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
 
@@ -226,18 +242,22 @@ func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
 
 	var options []ICMPOption
 	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if len(options) != 1 {
 		t.Errorf("parsed %d options instead of 1", len(options))
 	}
 
 	parsed := options[0].(*ICMPOptionTargetLinkLayerAddress)
-	parsed_marshal, err := parsed.Marshal()
+	parsedMarshal, err := parsed.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
 
@@ -278,18 +298,22 @@ func TestICMPOptionPrefixInformation(t *testing.T) {
 
 	var options []ICMPOption
 	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if len(options) != 1 {
 		t.Errorf("parsed %d options instead of 1", len(options))
 	}
 
 	parsed := options[0].(*ICMPOptionPrefixInformation)
-	parsed_marshal, err := parsed.Marshal()
+	parsedMarshal, err := parsed.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
 
@@ -326,18 +350,22 @@ func TestICMPOptionRecursiveDNSServer(t *testing.T) {
 
 	var options []ICMPOption
 	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if len(options) != 1 {
 		t.Errorf("parsed %d options instead of 1", len(options))
 	}
 
 	parsed := options[0].(*ICMPOptionRecursiveDNSServer)
-	parsed_marshal, err := parsed.Marshal()
+	parsedMarshal, err := parsed.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 
 	// check with multiple nameserver IPs
@@ -366,17 +394,21 @@ func TestICMPOptionRecursiveDNSServer(t *testing.T) {
 	}
 
 	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if len(options) != 1 {
 		t.Errorf("parsed %d options instead of 1", len(options))
 	}
 
 	parsed = options[0].(*ICMPOptionRecursiveDNSServer)
-	parsed_marshal, err = parsed.Marshal()
+	parsedMarshal, err = parsed.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }

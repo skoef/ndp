@@ -57,18 +57,18 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
-	parsed_icmp, err := ParseMessage(fixture)
+	parsedICMP, err := ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	parsed_marshal, err := parsed_icmp.Marshal()
+	parsedMarshal, err := parsedICMP.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 
 	// add option
@@ -96,18 +96,18 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
-	parsed_icmp, err = ParseMessage(fixture)
+	parsedICMP, err = ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	parsed_marshal, err = parsed_icmp.Marshal()
+	parsedMarshal, err = parsedICMP.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
 
@@ -135,18 +135,18 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
-	parsed_icmp, err := ParseMessage(fixture)
+	parsedICMP, err := ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	parsed_marshal, err := parsed_icmp.Marshal()
+	parsedMarshal, err := parsedICMP.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 
 	// add option
@@ -174,18 +174,18 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
-	parsed_icmp, err = ParseMessage(fixture)
+	parsedICMP, err = ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	parsed_marshal, err = parsed_icmp.Marshal()
+	parsedMarshal, err = parsedICMP.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
 
@@ -212,18 +212,18 @@ func TestICMPRouterSolicitation(t *testing.T) {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
-	parsed_icmp, err := ParseMessage(fixture)
+	parsedICMP, err := ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	parsed_marshal, err := parsed_icmp.Marshal()
+	parsedMarshal, err := parsedICMP.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 
 	// add option
@@ -251,18 +251,18 @@ func TestICMPRouterSolicitation(t *testing.T) {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
-	parsed_icmp, err = ParseMessage(fixture)
+	parsedICMP, err = ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	parsed_marshal, err = parsed_icmp.Marshal()
+	parsedMarshal, err = parsedICMP.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
 
@@ -332,26 +332,26 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
-	parsed_icmp, err := ParseMessage(fixture)
+	parsedICMP, err := ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	parsed_marshal, err := parsed_icmp.Marshal()
+	parsedMarshal, err := parsedICMP.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 
 	// add RDNSS option
-	dnss_option := NewICMPOption(ICMPOptionTypeRecursiveDNSServer).(*ICMPOptionRecursiveDNSServer)
-	dnss_option.Lifetime = 300
-	dnss_option.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")}
+	dnssOption := NewICMPOption(ICMPOptionTypeRecursiveDNSServer).(*ICMPOptionRecursiveDNSServer)
+	dnssOption.Lifetime = 300
+	dnssOption.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")}
 
-	icmp.AddOption(dnss_option)
+	icmp.AddOption(dnssOption)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
@@ -369,26 +369,26 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
 	}
 
-	parsed_icmp, err = ParseMessage(fixture)
+	parsedICMP, err = ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	parsed_marshal, err = parsed_icmp.Marshal()
+	parsedMarshal, err = parsedICMP.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 
 	// add DNSSL option
-	dnssl_option := NewICMPOption(ICMPOptionTypeDNSSearchList).(*ICMPOptionDNSSearchList)
-	dnssl_option.Lifetime = 10
-	dnssl_option.DomainNames = []string{"basement.golang.org."}
+	dnsslOption := NewICMPOption(ICMPOptionTypeDNSSearchList).(*ICMPOptionDNSSearchList)
+	dnsslOption.Lifetime = 10
+	dnsslOption.DomainNames = []string{"basement.golang.org."}
 
-	icmp.AddOption(dnssl_option)
+	icmp.AddOption(dnsslOption)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
@@ -401,9 +401,9 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	}
 
 	// add MTU option
-	mtu_option := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
-	mtu_option.MTU = 1500
-	icmp.AddOption(mtu_option)
+	mtuOption := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
+	mtuOption.MTU = 1500
+	icmp.AddOption(mtuOption)
 
 	marshal, err = icmp.Marshal()
 	if err != nil {
@@ -415,18 +415,18 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 
-	parsed_icmp, err = ParseMessage(fixture)
+	parsedICMP, err = ParseMessage(fixture)
 	if err != nil {
 		t.Error(err)
 	}
 
-	parsed_marshal, err = parsed_icmp.Marshal()
+	parsedMarshal, err = parsedICMP.Marshal()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if bytes.Compare(parsed_marshal, marshal) != 0 {
-		t.Errorf("marshal of %v did not match %v", marshal, parsed_marshal)
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
 
