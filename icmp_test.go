@@ -187,6 +187,14 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 	if bytes.Compare(parsedMarshal, marshal) != 0 {
 		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
+
+	if icmp.HasOption(ICMPOptionTypeTargetLinkLayerAddress) {
+		t.Errorf("should not have option %d", ICMPOptionTypeTargetLinkLayerAddress)
+	}
+
+	if !icmp.HasOption(ICMPOptionTypeSourceLinkLayerAddress) {
+		t.Errorf("should have option %d", ICMPOptionTypeSourceLinkLayerAddress)
+	}
 }
 
 func TestICMPRouterSolicitation(t *testing.T) {
@@ -263,6 +271,14 @@ func TestICMPRouterSolicitation(t *testing.T) {
 
 	if bytes.Compare(parsedMarshal, marshal) != 0 {
 		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
+	}
+
+	if icmp.HasOption(ICMPOptionTypeTargetLinkLayerAddress) {
+		t.Errorf("should not have option %d", ICMPOptionTypeTargetLinkLayerAddress)
+	}
+
+	if !icmp.HasOption(ICMPOptionTypeSourceLinkLayerAddress) {
+		t.Errorf("should have option %d", ICMPOptionTypeSourceLinkLayerAddress)
 	}
 }
 
@@ -428,6 +444,14 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	if bytes.Compare(parsedMarshal, marshal) != 0 {
 		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
+
+	if icmp.HasOption(ICMPOptionTypeTargetLinkLayerAddress) {
+		t.Errorf("should not have option %d", ICMPOptionTypeTargetLinkLayerAddress)
+	}
+
+	if !icmp.HasOption(ICMPOptionTypeDNSSearchList) {
+		t.Errorf("should have option %d", ICMPOptionTypeDNSSearchList)
+	}
 }
 
 func TestChecksum(t *testing.T) {
@@ -483,5 +507,13 @@ func TestChecksum(t *testing.T) {
 	fixture = []byte{134, 0, 34, 111, 64, 72, 14, 16, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1, 0, 0, 0, 0, 5, 220}
 	if bytes.Compare(marshal, fixture) != 0 {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	if msg.HasOption(ICMPOptionTypeTargetLinkLayerAddress) {
+		t.Errorf("should not have option %d", ICMPOptionTypeTargetLinkLayerAddress)
+	}
+
+	if !msg.HasOption(ICMPOptionTypeMTU) {
+		t.Errorf("should have option %d", ICMPOptionTypeMTU)
 	}
 }

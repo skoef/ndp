@@ -42,6 +42,7 @@ type ICMPOption interface {
 	String() string
 	Len() uint8
 	Marshal() ([]byte, error)
+	Type() ICMPOptionType
 }
 
 func NewICMPOption(optionType ICMPOptionType) ICMPOption {

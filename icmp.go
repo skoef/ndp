@@ -117,6 +117,25 @@ func (p *ICMPBase) AddOption(o ICMPOption) {
 	p.Options = append(p.Options, o)
 }
 
+func (p *ICMPBase) HasOption(t ICMPOptionType) bool {
+	for _, o := range p.Options {
+		if o.Type() == t {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *ICMPBase) GetOption(t ICMPOptionType) (*ICMPOption, error) {
+	for _, o := range p.Options {
+		if o.Type() == t {
+			return &o, nil
+		}
+	}
+
+	return nil, fmt.Errorf("option %d not found", t)
+}
+
 func ParseMessage(b []byte) (ICMP, error) {
 	if len(b) < 4 {
 		return nil, errMessageTooShort
