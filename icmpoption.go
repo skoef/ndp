@@ -23,6 +23,7 @@ const (
 	ICMPOptionTypeTargetLinkLayerAddress ICMPOptionType = 2
 	ICMPOptionTypePrefixInformation      ICMPOptionType = 3
 	ICMPOptionTypeMTU                    ICMPOptionType = 5
+	ICMPOptionTypeNonce                  ICMPOptionType = 14
 	ICMPOptionTypeRecursiveDNSServer     ICMPOptionType = 25
 	ICMPOptionTypeDNSSearchList          ICMPOptionType = 31
 )
@@ -33,6 +34,8 @@ var icmpOptionTypes = map[ICMPOptionType]string{
 	2: "target link-layer Address",
 	3: "prefix info",
 	5: "mtu",
+	// https://tools.ietf.org/html/rfc3971#section-5
+	14: "nonce",
 	// https://tools.ietf.org/html/rfc6106#section-5
 	25: "rdnss",
 	31: "dnssl",
@@ -72,6 +75,13 @@ func NewICMPOption(optionType ICMPOptionType) ICMPOption {
 		return &ICMPOptionMTU{
 			ICMPOptionBase: &ICMPOptionBase{
 				optionType: ICMPOptionTypeMTU,
+			},
+		}
+
+	case ICMPOptionTypeNonce:
+		return &ICMPOptionNonce{
+			ICMPOptionBase: &ICMPOptionBase{
+				optionType: ICMPOptionTypeNonce,
 			},
 		}
 
@@ -279,6 +289,54 @@ func (o *ICMPOptionMTU) Marshal() ([]byte, error) {
 	return b, nil
 }
 
+// As defined in https://tools.ietf.org/html/rfc3971#section-5.3.2
+type ICMPOptionNonce struct {
+	*ICMPOptionBase
+	Nonce uint64
+}
+
+// String implements the String method of ICMPOption interface.
+func (o *ICMPOptionNonce) String() string {
+	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
+	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
+	s += fmt.Sprintf(": %d", o.Nonce)
+
+	return s
+}
+
+// Len implements the Len method of ICMPOption interface.
+func (o *ICMPOptionNonce) Len() uint8 {
+	if o == nil {
+		return 0
+	}
+
+	// TODO: return proper length
+	return 1
+}
+
+// Marshal implements the Marshal method of ICMPOption interface.
+func (o *ICMPOptionNonce) Marshal() ([]byte, error) {
+	// NOTE: theoretically, larger nonces are possible
+	// as long as it adds multiples of 8 bytes to the max of
+	// 6 bytes set below.
+	if o.Nonce > 281474976710655 {
+		return nil, fmt.Errorf("nonce %d too large to fit in boundaries", o.Nonce)
+	}
+
+	// option header
+	b := make([]byte, 2)
+	b[0] = byte(o.Type())
+	b[1] = byte(o.Len())
+	// option fields
+
+	// add last 6 bytes of nonce
+	n := make([]byte, 8)
+	binary.BigEndian.PutUint64(n, o.Nonce)
+	b = append(b, n[2:8]...)
+
+	return b, nil
+}
+
 // As defined in https://tools.ietf.org/html/rfc6106#section-5.1
 type ICMPOptionRecursiveDNSServer struct {
 	*ICMPOptionBase
@@ -428,6 +486,21 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 				MTU: binary.BigEndian.Uint32(b[4:8]),
 			}
 
+		case ICMPOptionTypeNonce:
+			if optionLength != 1 {
+				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
+			}
+
+			currentOption = &ICMPOptionNonce{
+				ICMPOptionBase: &ICMPOptionBase{
+					optionType: optionType,
+				},
+			}
+
+			n := make([]byte, 2)
+			n = append(n, b[2:8]...)
+			currentOption.(*ICMPOptionNonce).Nonce = binary.BigEndian.Uint64(n)
+
 		case ICMPOptionTypeRecursiveDNSServer:
 			if optionLength < 3 {
 				return nil, fmt.Errorf("option %s (%d) too short: %d should at least be 3", icmpOptionTypes[optionType], optionType, optionLength)
@@ -462,7 +535,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			currentOption.(*ICMPOptionDNSSearchList).DomainNames = decDomainName(b[8:(optionLength * 8)])
 
 		default:
-			return nil, fmt.Errorf("unhandled ICMPv6 option type %d", optionType)
+			return nil, fmt.Errorf("unhandled ICMPv6 option type %d\n%v", optionType, b)
 		}
 
 		if optionLength != currentOption.Len() {

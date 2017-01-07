@@ -195,6 +195,34 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 	if !icmp.HasOption(ICMPOptionTypeSourceLinkLayerAddress) {
 		t.Errorf("should have option %d", ICMPOptionTypeSourceLinkLayerAddress)
 	}
+
+	// replace options with Nonce option
+	nonce := NewICMPOption(ICMPOptionTypeNonce).(*ICMPOptionNonce)
+	nonce.Nonce = 65766764768057 // 3bd0 84a6 eb39
+	icmp.Options = []ICMPOption{nonce}
+
+	marshal, err = icmp.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fixture = []byte{135, 0, 0, 0, 0, 0, 0, 0, 254, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 14, 1, 59, 208, 132, 166, 235, 57}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix = "neighbor solicitation, length 32, who has fe80::1\n    nonce option (14), length 8 (1): 65766764768057"
+	desc = icmp.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
+	// test nonce overflow
+	nonce.Nonce = 281474976710656
+	_, err = icmp.Marshal()
+	if err == nil {
+		t.Error("expected out of boundaries error")
+	}
 }
 
 func TestICMPRouterSolicitation(t *testing.T) {

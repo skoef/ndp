@@ -151,6 +151,57 @@ func TestICMPOptionMTU(t *testing.T) {
 	}
 }
 
+func TestICMPOptionNonce(t *testing.T) {
+	option := NewICMPOption(ICMPOptionTypeNonce).(*ICMPOptionNonce)
+	option.Nonce = 65766764768057
+
+	if option.Type() != ICMPOptionTypeNonce {
+		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeNonce)
+	}
+
+	if option.Len() != 1 {
+		t.Errorf("wrong length, %d != 1", option.Len())
+	}
+
+	marshal, err := option.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// fixture describes
+	// nonce option (14), length 8 (1): 65766764768057
+	fixture := []byte{14, 1, 59, 208, 132, 166, 235, 57}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix := "nonce option (14), length 8 (1): 65766764768057"
+	desc := option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
+	var options []ICMPOption
+	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(options) != 1 {
+		t.Errorf("parsed %d options instead of 1", len(options))
+	}
+
+	parsed := options[0].(*ICMPOptionNonce)
+	parsedMarshal, err := parsed.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
+	}
+}
+
 func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
 	var err error
 	option := NewICMPOption(ICMPOptionTypeSourceLinkLayerAddress).(*ICMPOptionSourceLinkLayerAddress)
