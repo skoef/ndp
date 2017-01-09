@@ -200,6 +200,11 @@ func TestICMPOptionNonce(t *testing.T) {
 	if bytes.Compare(parsedMarshal, marshal) != 0 {
 		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
+
+	option.Nonce = 281474976710656
+	if _, err = option.Marshal(); err == nil {
+		t.Errorf("expected out of boundaries error")
+	}
 }
 
 func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
