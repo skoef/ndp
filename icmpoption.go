@@ -458,8 +458,14 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			break
 		}
 
+		// beginning of header specifies type and length
 		optionType := ICMPOptionType(b[0])
 		optionLength := uint8(b[1])
+		// check if we got enought data for at least as long as optionLength specifies
+		if uint8(len(b)) < (optionLength * 8) {
+			return nil, fmt.Errorf("too few bytes received: %d while at least %d expected", len(b), (optionLength * 8))
+		}
+
 		var currentOption ICMPOption
 
 		switch optionType {
