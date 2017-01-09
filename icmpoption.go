@@ -112,6 +112,36 @@ func (o *ICMPOptionBase) Type() ICMPOptionType {
 	return o.optionType
 }
 
+// struct for parsing unknown/unhandled options
+type ICMPOptionUnknown struct {
+	optionLength uint8
+	optionType   ICMPOptionType
+	body         []byte
+}
+
+func (o *ICMPOptionUnknown) String() string {
+	s := fmt.Sprintf("unknown option (%d), length %d (%d)", o.optionType, (o.optionLength * 8), o.optionLength)
+
+	return s
+}
+
+func (o *ICMPOptionUnknown) Len() uint8 {
+	return o.optionLength
+}
+
+func (o *ICMPOptionUnknown) Marshal() ([]byte, error) {
+	b := make([]byte, 2)
+	b[0] = uint8(o.optionType)
+	b[1] = o.optionLength
+
+	b = append(b, o.body...)
+	return b, nil
+}
+
+func (o *ICMPOptionUnknown) Type() ICMPOptionType {
+	return o.optionType
+}
+
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.6.1
 type ICMPOptionSourceLinkLayerAddress struct {
 	*ICMPOptionBase
@@ -535,7 +565,11 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			currentOption.(*ICMPOptionDNSSearchList).DomainNames = decDomainName(b[8:(optionLength * 8)])
 
 		default:
-			return nil, fmt.Errorf("unhandled ICMPv6 option type %d\n%v", optionType, b)
+			currentOption = &ICMPOptionUnknown{
+				optionLength: optionLength,
+				optionType:   optionType,
+				body:         b[2:(optionLength * 8)],
+			}
 		}
 
 		if optionLength != currentOption.Len() {

@@ -463,3 +463,57 @@ func TestICMPOptionRecursiveDNSServer(t *testing.T) {
 		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
 	}
 }
+
+func TestICMPOptionUnknown(t *testing.T) {
+	option := &ICMPOptionUnknown{
+		optionType:   100,
+		optionLength: 1,
+		body:         []byte{1, 2, 3, 4, 5, 6},
+	}
+
+	if option.Type() != 100 {
+		t.Errorf("wrong type: %d instead of %d", option.Type(), 100)
+	}
+
+	if option.Len() != 1 {
+		t.Errorf("wrong length, %d != 1", option.Len())
+	}
+
+	marshal, err := option.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// fixture describes
+	// unknown option (100), length 8 (1)
+	fixture := []byte{100, 1, 1, 2, 3, 4, 5, 6}
+	if bytes.Compare(marshal, fixture) != 0 {
+		t.Errorf("fixture of %v did not match %v", fixture, marshal)
+	}
+
+	descfix := "unknown option (100), length 8 (1)"
+	desc := option.String()
+	if strings.Compare(desc, descfix) != 0 {
+		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
+	}
+
+	var options []ICMPOption
+	options, err = parseOptions(fixture)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(options) != 1 {
+		t.Errorf("parsed %d options instead of 1", len(options))
+	}
+
+	parsed := options[0].(*ICMPOptionUnknown)
+	parsedMarshal, err := parsed.Marshal()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if bytes.Compare(parsedMarshal, marshal) != 0 {
+		t.Errorf("marshal of %v did not match %v", marshal, parsedMarshal)
+	}
+}
