@@ -10,13 +10,6 @@ import (
 	"golang.org/x/net/ipv6"
 )
 
-func TestNewICMP(t *testing.T) {
-	msg := NewICMP(ipv6.ICMPTypeEchoRequest)
-	if msg != nil {
-		t.Error("unexpected handled type")
-	}
-}
-
 func TestParseMessage(t *testing.T) {
 	_, err := ParseMessage([]byte{0, 0, 0})
 	if err != errMessageTooShort {
@@ -31,11 +24,12 @@ func TestParseMessage(t *testing.T) {
 }
 
 func TestICMPNeighborAdvertisement(t *testing.T) {
-	icmp := NewICMP(ipv6.ICMPTypeNeighborAdvertisement).(*ICMPNeighborAdvertisement)
-	icmp.Router = true
-	icmp.Solicited = true
-	icmp.Override = true
-	icmp.TargetAddress = net.ParseIP("fe80::1")
+	icmp := &ICMPNeighborAdvertisement{
+		Router:        true,
+		Solicited:     true,
+		Override:      true,
+		TargetAddress: net.ParseIP("fe80::1"),
+	}
 
 	if icmp.Type() != ipv6.ICMPTypeNeighborAdvertisement {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeNeighborAdvertisement)
@@ -112,8 +106,9 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 }
 
 func TestICMPNeighborSolicitation(t *testing.T) {
-	icmp := NewICMP(ipv6.ICMPTypeNeighborSolicitation).(*ICMPNeighborSolicitation)
-	icmp.TargetAddress = net.ParseIP("fe80::1")
+	icmp := &ICMPNeighborSolicitation{
+		TargetAddress: net.ParseIP("fe80::1"),
+	}
 
 	if icmp.Type() != ipv6.ICMPTypeNeighborSolicitation {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeNeighborSolicitation)
@@ -226,7 +221,7 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 }
 
 func TestICMPRouterSolicitation(t *testing.T) {
-	icmp := NewICMP(ipv6.ICMPTypeRouterSolicitation).(*ICMPRouterSolicitation)
+	icmp := &ICMPRouterSolicitation{}
 
 	if icmp.Type() != ipv6.ICMPTypeRouterSolicitation {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeRouterSolicitation)
@@ -311,14 +306,15 @@ func TestICMPRouterSolicitation(t *testing.T) {
 }
 
 func TestICMPRouterAdvertisement(t *testing.T) {
-	icmp := NewICMP(ipv6.ICMPTypeRouterAdvertisement).(*ICMPRouterAdvertisement)
-	icmp.HopLimit = 64
-	icmp.ManagedAddress = true
-	icmp.OtherStateful = true
-	icmp.HomeAgent = true
-	icmp.RouterLifeTime = 3600
-	icmp.ReachableTime = 7200
-	icmp.RetransTimer = 1800
+	icmp := &ICMPRouterAdvertisement{
+		HopLimit:       64,
+		ManagedAddress: true,
+		OtherStateful:  true,
+		HomeAgent:      true,
+		RouterLifeTime: 3600,
+		ReachableTime:  7200,
+		RetransTimer:   1800,
+	}
 
 	if icmp.Type() != ipv6.ICMPTypeRouterAdvertisement {
 		t.Errorf("wrong type: %d instead of %d", icmp.Type(), ipv6.ICMPTypeRouterAdvertisement)
@@ -484,11 +480,12 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 
 func TestChecksum(t *testing.T) {
 	// prepare icmp message
-	msg := NewICMP(ipv6.ICMPTypeRouterAdvertisement).(*ICMPRouterAdvertisement)
-	msg.HopLimit = 64
-	msg.OtherStateful = true
-	msg.RouterLifeTime = 3600
-	msg.RouterPreference = RouterPreferenceHigh
+	msg := &ICMPRouterAdvertisement{
+		HopLimit:         64,
+		OtherStateful:    true,
+		RouterLifeTime:   3600,
+		RouterPreference: RouterPreferenceHigh,
+	}
 
 	marshal, err := msg.Marshal()
 	if err != nil {

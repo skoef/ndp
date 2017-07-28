@@ -7,6 +7,25 @@ import (
 	"strings"
 )
 
+// ICMPOptions is a type wrapper for a slice of ICMPOptions
+type ICMPOptions []ICMPOption
+
+// Marshal is a helper function of ICMPOptions and returns marshalled results
+// for all ICMPOptions or error when there is one
+func (opts ICMPOptions) Marshal() ([]byte, error) {
+	var b []byte
+	for _, o := range opts {
+		m, err := o.Marshal()
+		if err != nil {
+			return nil, err
+		}
+
+		b = append(b, m...)
+	}
+
+	return b, nil
+}
+
 type ICMPOptionType int
 
 func (typ ICMPOptionType) String() string {

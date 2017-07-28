@@ -19,47 +19,10 @@ type ICMP interface {
 	String() string
 	Marshal() ([]byte, error)
 	Type() ipv6.ICMPType
-	optMarshal() ([]byte, error)
 }
 
-func NewICMP(icmpType ipv6.ICMPType) ICMP {
-	switch icmpType {
-	case ipv6.ICMPTypeRouterAdvertisement:
-		return &ICMPRouterAdvertisement{
-			ICMPBase: &ICMPBase{
-				ICMPType: ipv6.ICMPTypeRouterAdvertisement,
-			},
-		}
-	case ipv6.ICMPTypeRouterSolicitation:
-		return &ICMPRouterSolicitation{
-			ICMPBase: &ICMPBase{
-				ICMPType: ipv6.ICMPTypeRouterSolicitation,
-			},
-		}
-	case ipv6.ICMPTypeNeighborAdvertisement:
-		return &ICMPNeighborAdvertisement{
-			ICMPBase: &ICMPBase{
-				ICMPType: ipv6.ICMPTypeNeighborAdvertisement,
-			},
-		}
-	case ipv6.ICMPTypeNeighborSolicitation:
-		return &ICMPNeighborSolicitation{
-			ICMPBase: &ICMPBase{
-				ICMPType: ipv6.ICMPTypeNeighborSolicitation,
-			},
-		}
-	default:
-		return nil
-	}
-}
-
-type ICMPBase struct {
-	ICMPType ipv6.ICMPType
-	Options  []ICMPOption
-}
-
-func (p *ICMPBase) Type() ipv6.ICMPType {
-	return p.ICMPType
+type optionContainer struct {
+	Options ICMPOptions
 }
 
 func Checksum(body *[]byte, srcIP, dstIP net.IP) error {
@@ -99,26 +62,12 @@ func Checksum(body *[]byte, srcIP, dstIP net.IP) error {
 	return nil
 }
 
-func (p *ICMPBase) optMarshal() ([]byte, error) {
-	var b []byte
-	for _, o := range p.Options {
-		m, err := o.Marshal()
-		if err != nil {
-			return nil, err
-		}
-
-		b = append(b, m...)
-	}
-
-	return b, nil
+func (oc *optionContainer) AddOption(o ICMPOption) {
+	oc.Options = append(oc.Options, o)
 }
 
-func (p *ICMPBase) AddOption(o ICMPOption) {
-	p.Options = append(p.Options, o)
-}
-
-func (p *ICMPBase) HasOption(t ICMPOptionType) bool {
-	for _, o := range p.Options {
+func (oc optionContainer) HasOption(t ICMPOptionType) bool {
+	for _, o := range oc.Options {
 		if o.Type() == t {
 			return true
 		}
@@ -126,8 +75,8 @@ func (p *ICMPBase) HasOption(t ICMPOptionType) bool {
 	return false
 }
 
-func (p *ICMPBase) GetOption(t ICMPOptionType) (*ICMPOption, error) {
-	for _, o := range p.Options {
+func (oc optionContainer) GetOption(t ICMPOptionType) (*ICMPOption, error) {
+	for _, o := range oc.Options {
 		if o.Type() == t {
 			return &o, nil
 		}
@@ -146,11 +95,7 @@ func ParseMessage(b []byte) (ICMP, error) {
 
 	switch icmpType {
 	case ipv6.ICMPTypeRouterSolicitation:
-		message = &ICMPRouterSolicitation{
-			ICMPBase: &ICMPBase{
-				ICMPType: icmpType,
-			},
-		}
+		message = &ICMPRouterSolicitation{}
 
 		if len(b) > 8 {
 			options, err := parseOptions(b[8:])
@@ -165,9 +110,6 @@ func ParseMessage(b []byte) (ICMP, error) {
 
 	case ipv6.ICMPTypeRouterAdvertisement:
 		message = &ICMPRouterAdvertisement{
-			ICMPBase: &ICMPBase{
-				ICMPType: icmpType,
-			},
 			HopLimit:       uint8(b[4]),
 			ManagedAddress: false,
 			OtherStateful:  false,
@@ -206,9 +148,6 @@ func ParseMessage(b []byte) (ICMP, error) {
 
 	case ipv6.ICMPTypeNeighborSolicitation:
 		message = &ICMPNeighborSolicitation{
-			ICMPBase: &ICMPBase{
-				ICMPType: icmpType,
-			},
 			TargetAddress: b[8:24],
 		}
 
@@ -225,9 +164,6 @@ func ParseMessage(b []byte) (ICMP, error) {
 
 	case ipv6.ICMPTypeNeighborAdvertisement:
 		message = &ICMPNeighborAdvertisement{
-			ICMPBase: &ICMPBase{
-				ICMPType: icmpType,
-			},
 			TargetAddress: b[8:24],
 		}
 
@@ -260,7 +196,7 @@ func ParseMessage(b []byte) (ICMP, error) {
 
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.1
 type ICMPRouterSolicitation struct {
-	*ICMPBase
+	optionContainer
 }
 
 func (p *ICMPRouterSolicitation) String() string {
@@ -273,6 +209,11 @@ func (p *ICMPRouterSolicitation) String() string {
 	return strings.TrimSuffix(s, "\n")
 }
 
+// Type returns ipv6.ICMPTypeRouterSolicitation
+func (p ICMPRouterSolicitation) Type() ipv6.ICMPType {
+	return ipv6.ICMPTypeRouterSolicitation
+}
+
 func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {
 	b := make([]byte, 8)
 	// message header
@@ -280,7 +221,7 @@ func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {
 	// b[1] = code, always 0
 	// b[2:3] = checksum, calculated separately
 	// add options
-	om, err := p.optMarshal()
+	om, err := p.Options.Marshal()
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +254,7 @@ func (typ RouterPreferenceField) String() string {
 
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.2
 type ICMPRouterAdvertisement struct {
-	*ICMPBase
+	optionContainer
 	HopLimit         uint8
 	ManagedAddress   bool
 	OtherStateful    bool
@@ -350,6 +291,11 @@ func (p *ICMPRouterAdvertisement) String() string {
 	return strings.TrimSuffix(s, "\n")
 }
 
+// Type returns ipv6.ICMPTypeRouterAdvertisement
+func (p ICMPRouterAdvertisement) Type() ipv6.ICMPType {
+	return ipv6.ICMPTypeRouterAdvertisement
+}
+
 func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
 	b := make([]byte, 16)
 	// message header
@@ -377,7 +323,7 @@ func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
 	binary.BigEndian.PutUint32(b[8:12], uint32(p.ReachableTime))
 	binary.BigEndian.PutUint32(b[12:16], uint32(p.RetransTimer))
 	// add options
-	om, err := p.optMarshal()
+	om, err := p.Options.Marshal()
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +334,7 @@ func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
 
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.3
 type ICMPNeighborSolicitation struct {
-	*ICMPBase
+	optionContainer
 	TargetAddress net.IP
 }
 
@@ -403,6 +349,11 @@ func (p *ICMPNeighborSolicitation) String() string {
 	return strings.TrimSuffix(s, "\n")
 }
 
+// Type returns ipv6.ICMPTypeNeighborSolicitation
+func (p ICMPNeighborSolicitation) Type() ipv6.ICMPType {
+	return ipv6.ICMPTypeNeighborSolicitation
+}
+
 func (p *ICMPNeighborSolicitation) Marshal() ([]byte, error) {
 	b := make([]byte, 8)
 	// message header
@@ -411,7 +362,7 @@ func (p *ICMPNeighborSolicitation) Marshal() ([]byte, error) {
 	// b[2:3] = checksum, calculated separately
 	b = append(b, p.TargetAddress...)
 	// add options
-	om, err := p.optMarshal()
+	om, err := p.Options.Marshal()
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +373,7 @@ func (p *ICMPNeighborSolicitation) Marshal() ([]byte, error) {
 
 // As defined in https://tools.ietf.org/html/rfc4861#section-4.4
 type ICMPNeighborAdvertisement struct {
-	*ICMPBase
+	optionContainer
 	Router        bool
 	Solicited     bool
 	Override      bool
@@ -451,6 +402,11 @@ func (p *ICMPNeighborAdvertisement) String() string {
 	return strings.TrimSuffix(s, "\n")
 }
 
+// Type returns ipv6.ICMPTypeNeighborAdvertisement
+func (p ICMPNeighborAdvertisement) Type() ipv6.ICMPType {
+	return ipv6.ICMPTypeNeighborAdvertisement
+}
+
 func (p *ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
 	b := make([]byte, 8)
 	// message header
@@ -468,7 +424,7 @@ func (p *ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
 	}
 	b = append(b, p.TargetAddress...)
 	// add options
-	om, err := p.optMarshal()
+	om, err := p.Options.Marshal()
 	if err != nil {
 		return nil, err
 	}
