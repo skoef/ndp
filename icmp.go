@@ -15,6 +15,7 @@ var (
 	errMessageTooShort = errors.New("message too short")
 )
 
+// ICMP implements an interface to base various ICMPv6 packets on
 type ICMP interface {
 	String() string
 	Marshal() ([]byte, error)
@@ -25,6 +26,8 @@ type optionContainer struct {
 	Options ICMPOptions
 }
 
+// Checksum calculates and sets checksum to a given body of bytes
+// based on source and destination IP
 func Checksum(body *[]byte, srcIP, dstIP net.IP) error {
 	// from golang.org/x/net/icmp/message.go
 	checksum := func(b []byte) uint16 {
@@ -62,10 +65,12 @@ func Checksum(body *[]byte, srcIP, dstIP net.IP) error {
 	return nil
 }
 
+// AddOption adds given ICMPOption to options of ICMP
 func (oc *optionContainer) AddOption(o ICMPOption) {
 	oc.Options = append(oc.Options, o)
 }
 
+// HasOption returns true if ICMP contains option of type ICMPOptionType
 func (oc optionContainer) HasOption(t ICMPOptionType) bool {
 	for _, o := range oc.Options {
 		if o.Type() == t {
@@ -75,6 +80,8 @@ func (oc optionContainer) HasOption(t ICMPOptionType) bool {
 	return false
 }
 
+// GetOption returns ICMPOption of type ICMPOptionType or error if ICMP has
+// no such option
 func (oc optionContainer) GetOption(t ICMPOptionType) (*ICMPOption, error) {
 	for _, o := range oc.Options {
 		if o.Type() == t {
@@ -85,6 +92,8 @@ func (oc optionContainer) GetOption(t ICMPOptionType) (*ICMPOption, error) {
 	return nil, fmt.Errorf("option %d not found", t)
 }
 
+// ParseMessage returns ICMP and its ICMPOptions for given bytes or error
+// if it couldn't parse it
 func ParseMessage(b []byte) (ICMP, error) {
 	if len(b) < 4 {
 		return nil, errMessageTooShort
@@ -194,12 +203,13 @@ func ParseMessage(b []byte) (ICMP, error) {
 	}
 }
 
-// As defined in https://tools.ietf.org/html/rfc4861#section-4.1
+// ICMPRouterSolicitation implements the Router Solicitation message as
+// described at https://tools.ietf.org/html/rfc4861#section-4.1
 type ICMPRouterSolicitation struct {
 	optionContainer
 }
 
-func (p *ICMPRouterSolicitation) String() string {
+func (p ICMPRouterSolicitation) String() string {
 	m, _ := p.Marshal()
 	s := fmt.Sprintf("%s, length %d\n", p.Type(), uint8(len(m)))
 	for _, o := range p.Options {
@@ -214,7 +224,8 @@ func (p ICMPRouterSolicitation) Type() ipv6.ICMPType {
 	return ipv6.ICMPTypeRouterSolicitation
 }
 
-func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPRouterSolicitation
+func (p ICMPRouterSolicitation) Marshal() ([]byte, error) {
 	b := make([]byte, 8)
 	// message header
 	b[0] = uint8(p.Type())
@@ -230,13 +241,16 @@ func (p *ICMPRouterSolicitation) Marshal() ([]byte, error) {
 	return b, nil
 }
 
+// RouterPreferenceField implements the Router Preference Values as
+// described at https://tools.ietf.org/html/rfc4191#section-2.1
 type RouterPreferenceField int
 
-// As defined in https://tools.ietf.org/html/rfc4191#section-2.1
+// types currently defined
 const (
-	RouterPreferenceMedium RouterPreferenceField = 0 // 00
-	RouterPreferenceHigh   RouterPreferenceField = 1 // 01
-	RouterPreferenceLow    RouterPreferenceField = 3 // 11
+	RouterPreferenceMedium RouterPreferenceField = iota
+	RouterPreferenceHigh
+	_
+	RouterPreferenceLow
 )
 
 func (typ RouterPreferenceField) String() string {
@@ -252,7 +266,8 @@ func (typ RouterPreferenceField) String() string {
 	}
 }
 
-// As defined in https://tools.ietf.org/html/rfc4861#section-4.2
+// ICMPRouterAdvertisement implements the Router Advertisement message as
+// described at https://tools.ietf.org/html/rfc4861#section-4.2
 type ICMPRouterAdvertisement struct {
 	optionContainer
 	HopLimit         uint8
@@ -265,7 +280,7 @@ type ICMPRouterAdvertisement struct {
 	RetransTimer     uint32
 }
 
-func (p *ICMPRouterAdvertisement) String() string {
+func (p ICMPRouterAdvertisement) String() string {
 	m, _ := p.Marshal()
 	s := fmt.Sprintf("%s, length %d\n ", p.Type(), uint8(len(m)))
 	s += fmt.Sprintf("hop limit %d, ", p.HopLimit)
@@ -296,7 +311,8 @@ func (p ICMPRouterAdvertisement) Type() ipv6.ICMPType {
 	return ipv6.ICMPTypeRouterAdvertisement
 }
 
-func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPRouterAdvertisement
+func (p ICMPRouterAdvertisement) Marshal() ([]byte, error) {
 	b := make([]byte, 16)
 	// message header
 	b[0] = uint8(p.Type())
@@ -332,13 +348,14 @@ func (p *ICMPRouterAdvertisement) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-// As defined in https://tools.ietf.org/html/rfc4861#section-4.3
+// ICMPNeighborSolicitation implements the Neighbor Solicitation message as
+// described at https://tools.ietf.org/html/rfc4861#section-4.3
 type ICMPNeighborSolicitation struct {
 	optionContainer
 	TargetAddress net.IP
 }
 
-func (p *ICMPNeighborSolicitation) String() string {
+func (p ICMPNeighborSolicitation) String() string {
 	m, _ := p.Marshal()
 	s := fmt.Sprintf("%s, length %d, ", p.Type(), uint8(len(m)))
 	s += fmt.Sprintf("who has %s\n", p.TargetAddress)
@@ -354,7 +371,8 @@ func (p ICMPNeighborSolicitation) Type() ipv6.ICMPType {
 	return ipv6.ICMPTypeNeighborSolicitation
 }
 
-func (p *ICMPNeighborSolicitation) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPNeighborSolicitation
+func (p ICMPNeighborSolicitation) Marshal() ([]byte, error) {
 	b := make([]byte, 8)
 	// message header
 	b[0] = uint8(p.Type())
@@ -371,7 +389,8 @@ func (p *ICMPNeighborSolicitation) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-// As defined in https://tools.ietf.org/html/rfc4861#section-4.4
+// ICMPNeighborAdvertisement implements the Neighbor Advertisement message as
+// described at https://tools.ietf.org/html/rfc4861#section-4.4
 type ICMPNeighborAdvertisement struct {
 	optionContainer
 	Router        bool
@@ -380,7 +399,7 @@ type ICMPNeighborAdvertisement struct {
 	TargetAddress net.IP
 }
 
-func (p *ICMPNeighborAdvertisement) String() string {
+func (p ICMPNeighborAdvertisement) String() string {
 	m, _ := p.Marshal()
 	s := fmt.Sprintf("%s, length %d, ", p.Type(), uint8(len(m)))
 	s += fmt.Sprintf("tgt is %s, ", p.TargetAddress)
@@ -407,7 +426,8 @@ func (p ICMPNeighborAdvertisement) Type() ipv6.ICMPType {
 	return ipv6.ICMPTypeNeighborAdvertisement
 }
 
-func (p *ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPNeighborAdvertisement
+func (p ICMPNeighborAdvertisement) Marshal() ([]byte, error) {
 	b := make([]byte, 8)
 	// message header
 	b[0] = uint8(p.Type())
