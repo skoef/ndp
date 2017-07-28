@@ -31,7 +31,7 @@ type ICMPOptionType int
 
 // ICMPv6 Neighbor discovery types as described in RFC4861, RFC3971, RFC6106
 const (
-	_ ICMPOptionType = iota
+	ICMPOptionTypeUnknown ICMPOptionType = iota
 	// RFC4861
 	ICMPOptionTypeSourceLinkLayerAddress
 	ICMPOptionTypeTargetLinkLayerAddress
@@ -66,6 +66,7 @@ func (t ICMPOptionType) String() string {
 	}
 }
 
+// ICMPOption implements an interface to base various ICMPv6 options on
 type ICMPOption interface {
 	String() string
 	Len() uint8
@@ -73,88 +74,29 @@ type ICMPOption interface {
 	Type() ICMPOptionType
 }
 
-func NewICMPOption(optionType ICMPOptionType) ICMPOption {
-	switch optionType {
-	case ICMPOptionTypeSourceLinkLayerAddress:
-		return &ICMPOptionSourceLinkLayerAddress{
-			ICMPOptionBase: &ICMPOptionBase{
-				optionType: ICMPOptionTypeSourceLinkLayerAddress,
-			},
-		}
-
-	case ICMPOptionTypeTargetLinkLayerAddress:
-		return &ICMPOptionTargetLinkLayerAddress{
-			ICMPOptionBase: &ICMPOptionBase{
-				optionType: ICMPOptionTypeTargetLinkLayerAddress,
-			},
-		}
-
-	case ICMPOptionTypePrefixInformation:
-		return &ICMPOptionPrefixInformation{
-			ICMPOptionBase: &ICMPOptionBase{
-				optionType: ICMPOptionTypePrefixInformation,
-			},
-		}
-
-	case ICMPOptionTypeMTU:
-		return &ICMPOptionMTU{
-			ICMPOptionBase: &ICMPOptionBase{
-				optionType: ICMPOptionTypeMTU,
-			},
-		}
-
-	case ICMPOptionTypeNonce:
-		return &ICMPOptionNonce{
-			ICMPOptionBase: &ICMPOptionBase{
-				optionType: ICMPOptionTypeNonce,
-			},
-		}
-
-	case ICMPOptionTypeRecursiveDNSServer:
-		return &ICMPOptionRecursiveDNSServer{
-			ICMPOptionBase: &ICMPOptionBase{
-				optionType: ICMPOptionTypeRecursiveDNSServer,
-			},
-		}
-
-	case ICMPOptionTypeDNSSearchList:
-		return &ICMPOptionDNSSearchList{
-			ICMPOptionBase: &ICMPOptionBase{
-				optionType: ICMPOptionTypeDNSSearchList,
-			},
-		}
-
-	default:
-		return nil
-	}
-}
-
-type ICMPOptionBase struct {
-	optionType ICMPOptionType
-}
-
-func (o *ICMPOptionBase) Type() ICMPOptionType {
-	return o.optionType
-}
-
-// struct for parsing unknown/unhandled options
+// ICMPOptionUnknown implements generic type for handling unknown options
 type ICMPOptionUnknown struct {
 	optionLength uint8
 	optionType   ICMPOptionType
 	body         []byte
 }
 
-func (o *ICMPOptionUnknown) String() string {
-	s := fmt.Sprintf("unknown option (%d), length %d (%d)", o.optionType, (o.optionLength * 8), o.optionLength)
-
-	return s
+func (o ICMPOptionUnknown) String() string {
+	return fmt.Sprintf("unknown option (%d), length %d (%d)", o.optionType, (o.optionLength * 8), o.optionLength)
 }
 
-func (o *ICMPOptionUnknown) Len() uint8 {
+// Type returns apparent type of this option
+func (o ICMPOptionUnknown) Type() ICMPOptionType {
+	return o.optionType
+}
+
+// Len returns known length for this option
+func (o ICMPOptionUnknown) Len() uint8 {
 	return o.optionLength
 }
 
-func (o *ICMPOptionUnknown) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPOptionUnknown
+func (o ICMPOptionUnknown) Marshal() ([]byte, error) {
 	b := make([]byte, 2)
 	b[0] = uint8(o.optionType)
 	b[1] = o.optionLength
@@ -163,18 +105,13 @@ func (o *ICMPOptionUnknown) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-func (o *ICMPOptionUnknown) Type() ICMPOptionType {
-	return o.optionType
-}
-
-// As defined in https://tools.ietf.org/html/rfc4861#section-4.6.1
+// ICMPOptionSourceLinkLayerAddress implements the Source Linklayer Address option
+// as described at https://tools.ietf.org/html/rfc4861#section-4.6.1
 type ICMPOptionSourceLinkLayerAddress struct {
-	*ICMPOptionBase
 	LinkLayerAddress net.HardwareAddr
 }
 
-// String implements the String method of ICMPOption interface.
-func (o *ICMPOptionSourceLinkLayerAddress) String() string {
+func (o ICMPOptionSourceLinkLayerAddress) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
 	s += fmt.Sprintf(": %s", o.LinkLayerAddress)
@@ -182,12 +119,13 @@ func (o *ICMPOptionSourceLinkLayerAddress) String() string {
 	return s
 }
 
-// Len implements the Len method of ICMPOption interface.
-func (o *ICMPOptionSourceLinkLayerAddress) Len() uint8 {
-	if o == nil {
-		return 0
-	}
+// Type returns ICMPOptionTypeSourceLinkLayerAddress
+func (o ICMPOptionSourceLinkLayerAddress) Type() ICMPOptionType {
+	return ICMPOptionTypeSourceLinkLayerAddress
+}
 
+// Len returns the length in bytes of ICMPOptionSourceLinkLayerAddress
+func (o ICMPOptionSourceLinkLayerAddress) Len() uint8 {
 	// Source Link-Layer Address options' length
 	// depends on the length of the link-layer address
 	// but since we define net.HardwareAddr as its type
@@ -195,8 +133,8 @@ func (o *ICMPOptionSourceLinkLayerAddress) Len() uint8 {
 	return 1
 }
 
-// Marshal implements the Marshal method of ICMPOption interface.
-func (o *ICMPOptionSourceLinkLayerAddress) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPOptionSourceLinkLayerAddress
+func (o ICMPOptionSourceLinkLayerAddress) Marshal() ([]byte, error) {
 	// option header
 	b := make([]byte, 2)
 	b[0] = byte(o.Type())
@@ -207,13 +145,13 @@ func (o *ICMPOptionSourceLinkLayerAddress) Marshal() ([]byte, error) {
 	return b, nil
 }
 
+// ICMPOptionTargetLinkLayerAddress implements the Target Linklayer Address option
+// as described at https://tools.ietf.org/html/rfc4861#section-4.6.1
 type ICMPOptionTargetLinkLayerAddress struct {
-	*ICMPOptionBase
 	LinkLayerAddress net.HardwareAddr
 }
 
-// String implements the String method of ICMPOption interface.
-func (o *ICMPOptionTargetLinkLayerAddress) String() string {
+func (o ICMPOptionTargetLinkLayerAddress) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
 	s += fmt.Sprintf(": %s", o.LinkLayerAddress)
@@ -221,12 +159,13 @@ func (o *ICMPOptionTargetLinkLayerAddress) String() string {
 	return s
 }
 
-// Len implements the Len method of ICMPOption interface.
-func (o *ICMPOptionTargetLinkLayerAddress) Len() uint8 {
-	if o == nil {
-		return 0
-	}
+// Type returns ICMPOptionTypeTargetLinkLayerAddress
+func (o ICMPOptionTargetLinkLayerAddress) Type() ICMPOptionType {
+	return ICMPOptionTypeTargetLinkLayerAddress
+}
 
+// Len returns the length in bytes of ICMPOptionTargetLinkLayerAddress
+func (o ICMPOptionTargetLinkLayerAddress) Len() uint8 {
 	// Target Link-Layer Address options' length
 	// depends on the length of the link-layer address
 	// but since we define net.HardwareAddr as its type
@@ -234,8 +173,8 @@ func (o *ICMPOptionTargetLinkLayerAddress) Len() uint8 {
 	return 1
 }
 
-// Marshal implements the Marshal method of ICMPOption interface.
-func (o *ICMPOptionTargetLinkLayerAddress) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPOptionTargetLinkLayerAddress
+func (o ICMPOptionTargetLinkLayerAddress) Marshal() ([]byte, error) {
 	b := make([]byte, 2)
 	// option header
 	b[0] = byte(o.Type())
@@ -246,9 +185,9 @@ func (o *ICMPOptionTargetLinkLayerAddress) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-// As defined in https://tools.ietf.org/html/rfc4861#section-4.6.2
+// ICMPOptionPrefixInformation implements the Prefix Information option
+// as described at https://tools.ietf.org/html/rfc4861#section-4.6.2
 type ICMPOptionPrefixInformation struct {
-	*ICMPOptionBase
 	PrefixLength      uint8
 	OnLink            bool
 	Auto              bool
@@ -258,7 +197,7 @@ type ICMPOptionPrefixInformation struct {
 }
 
 // String implements the String method of ICMPOption interface.
-func (o *ICMPOptionPrefixInformation) String() string {
+func (o ICMPOptionPrefixInformation) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
 	s += fmt.Sprintf(": %s/%d, ", o.Prefix, o.PrefixLength)
@@ -276,18 +215,19 @@ func (o *ICMPOptionPrefixInformation) String() string {
 	return s
 }
 
-// Len implements the Len method of ICMPOption interface.
-func (o *ICMPOptionPrefixInformation) Len() uint8 {
-	if o == nil {
-		return 0
-	}
+// Type returns ICMPOptionTypePrefixInformation
+func (o ICMPOptionPrefixInformation) Type() ICMPOptionType {
+	return ICMPOptionTypePrefixInformation
+}
 
+// Len returns the length in bytes of ICMPOptionPrefixInformation
+func (o ICMPOptionPrefixInformation) Len() uint8 {
 	// Prefix information options are always 4
 	return 4
 }
 
-// Marshal implements the Marshal method of ICMPOption interface.
-func (o *ICMPOptionPrefixInformation) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPOptionPrefixInformation
+func (o ICMPOptionPrefixInformation) Marshal() ([]byte, error) {
 	b := make([]byte, 16)
 	// option header
 	b[0] = byte(o.Type())
@@ -307,14 +247,14 @@ func (o *ICMPOptionPrefixInformation) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-// As defined in https://tools.ietf.org/html/rfc4861#section-4.6.4
+// ICMPOptionMTU implements the MTU option as described at
+// https://tools.ietf.org/html/rfc4861#section-4.6.4
 type ICMPOptionMTU struct {
-	*ICMPOptionBase
 	MTU uint32
 }
 
 // String implements the String method of ICMPOption interface.
-func (o *ICMPOptionMTU) String() string {
+func (o ICMPOptionMTU) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
 	s += fmt.Sprintf(": %d", o.MTU)
@@ -322,17 +262,18 @@ func (o *ICMPOptionMTU) String() string {
 	return s
 }
 
-// Len implements the Len method of ICMPOption interface.
-func (o *ICMPOptionMTU) Len() uint8 {
-	if o == nil {
-		return 0
-	}
+// Type returns ICMPOptionTypeMTU
+func (o ICMPOptionMTU) Type() ICMPOptionType {
+	return ICMPOptionTypeMTU
+}
 
+// Len returns the length in bytes of ICMPOptionMTU
+func (o ICMPOptionMTU) Len() uint8 {
 	// MTU options are always 1
 	return 1
 }
 
-// Marshal implements the Marshal method of ICMPOption interface.
+// Marshal returns byte slice representing this ICMPOptionMTU
 func (o *ICMPOptionMTU) Marshal() ([]byte, error) {
 	// option header
 	b := make([]byte, 8)
@@ -344,14 +285,14 @@ func (o *ICMPOptionMTU) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-// As defined in https://tools.ietf.org/html/rfc3971#section-5.3.2
+// ICMPOptionNonce implements the Nonce option as described at
+// https://tools.ietf.org/html/rfc3971#section-5.3.2
 type ICMPOptionNonce struct {
-	*ICMPOptionBase
 	Nonce uint64
 }
 
 // String implements the String method of ICMPOption interface.
-func (o *ICMPOptionNonce) String() string {
+func (o ICMPOptionNonce) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d)", (o.Len() * 8), o.Len())
 	s += fmt.Sprintf(": %d", o.Nonce)
@@ -359,18 +300,19 @@ func (o *ICMPOptionNonce) String() string {
 	return s
 }
 
-// Len implements the Len method of ICMPOption interface.
-func (o *ICMPOptionNonce) Len() uint8 {
-	if o == nil {
-		return 0
-	}
+// Type returns ICMPOptionTypeNonce
+func (o ICMPOptionNonce) Type() ICMPOptionType {
+	return ICMPOptionTypeNonce
+}
 
+// Len returns the length in bytes of ICMPOptionNonce
+func (o ICMPOptionNonce) Len() uint8 {
 	// TODO: return proper length
 	return 1
 }
 
-// Marshal implements the Marshal method of ICMPOption interface.
-func (o *ICMPOptionNonce) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPOptionNonce
+func (o ICMPOptionNonce) Marshal() ([]byte, error) {
 	// NOTE: theoretically, larger nonces are possible
 	// as long as it adds multiples of 8 bytes to the max of
 	// 6 bytes set below.
@@ -392,24 +334,20 @@ func (o *ICMPOptionNonce) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-// As defined in https://tools.ietf.org/html/rfc6106#section-5.1
+// ICMPOptionRecursiveDNSServer implements the Recursive DNS Server option
+// as described at https://tools.ietf.org/html/rfc6106#section-5.1
 type ICMPOptionRecursiveDNSServer struct {
-	*ICMPOptionBase
 	Lifetime uint32
 	Servers  []net.IP
 }
 
-// Len implements the Len method of ICMPOption interface.
-func (o *ICMPOptionRecursiveDNSServer) Len() uint8 {
-	if o == nil {
-		return 0
-	}
-
+// Len returns the length in bytes of ICMPOptionRecursiveDNSServer
+func (o ICMPOptionRecursiveDNSServer) Len() uint8 {
 	return 1 + uint8(len(o.Servers)*2)
 }
 
 // String implements the String method of ICMPOption interface.
-func (o *ICMPOptionRecursiveDNSServer) String() string {
+func (o ICMPOptionRecursiveDNSServer) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d): ", (o.Len() * 8), o.Len())
 	s += fmt.Sprintf("lifetime %ds, ", o.Lifetime)
@@ -420,8 +358,13 @@ func (o *ICMPOptionRecursiveDNSServer) String() string {
 	return strings.TrimSuffix(s, " ")
 }
 
-// Marshal implements the Marshal method of ICMPOption interface.
-func (o *ICMPOptionRecursiveDNSServer) Marshal() ([]byte, error) {
+// Type returns ICMPOptionTypeRecursiveDNSServer
+func (o ICMPOptionRecursiveDNSServer) Type() ICMPOptionType {
+	return ICMPOptionTypeRecursiveDNSServer
+}
+
+// Marshal returns byte slice representing this ICMPOptionRecursiveDNSServer
+func (o ICMPOptionRecursiveDNSServer) Marshal() ([]byte, error) {
 	b := make([]byte, 8)
 	// option header
 	b[0] = byte(o.Type())
@@ -435,33 +378,35 @@ func (o *ICMPOptionRecursiveDNSServer) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-// As defined in https://tools.ietf.org/html/rfc6106#section-5.2
+// ICMPOptionDNSSearchList implements the DNS Search List option
+// as described at https://tools.ietf.org/html/rfc6106#section-5.2
 type ICMPOptionDNSSearchList struct {
-	*ICMPOptionBase
 	Lifetime    uint32
 	DomainNames []string
 }
 
 // String implements the String method of ICMPOption interface.
-func (o *ICMPOptionDNSSearchList) String() string {
+func (o ICMPOptionDNSSearchList) String() string {
 	s := fmt.Sprintf("%s option (%d), ", o.Type(), o.Type())
 	s += fmt.Sprintf("length %d (%d): ", (o.Len() * 8), o.Len())
 	s += fmt.Sprintf("lifetime %ds, ", o.Lifetime)
 	s += fmt.Sprintf("domain(s) %s", strings.Join(o.DomainNames, ", "))
+
 	return s
 }
 
-// Len implements the Len method of ICMPOption interface.
-func (o *ICMPOptionDNSSearchList) Len() uint8 {
-	if o == nil {
-		return 0
-	}
+// Type returns ICMPOptionTypeDNSSearchList
+func (o ICMPOptionDNSSearchList) Type() ICMPOptionType {
+	return ICMPOptionTypeDNSSearchList
+}
 
+// Len returns the length in bytes of ICMPOptionDNSSearchList
+func (o ICMPOptionDNSSearchList) Len() uint8 {
 	return 2 + uint8(len(o.DomainNames)*2)
 }
 
-// Marshal implements the Marshal method of ICMPOption interface.
-func (o *ICMPOptionDNSSearchList) Marshal() ([]byte, error) {
+// Marshal returns byte slice representing this ICMPOptionDNSSearchList
+func (o ICMPOptionDNSSearchList) Marshal() ([]byte, error) {
 	b := make([]byte, 8)
 	// option header
 	b[0] = byte(o.Type())
@@ -500,9 +445,6 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			}
 
 			currentOption = &ICMPOptionSourceLinkLayerAddress{
-				ICMPOptionBase: &ICMPOptionBase{
-					optionType: optionType,
-				},
 				LinkLayerAddress: b[2:8],
 			}
 
@@ -512,9 +454,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			}
 
 			currentOption = &ICMPOptionTargetLinkLayerAddress{
-				ICMPOptionBase: &ICMPOptionBase{
-					optionType: optionType,
-				},
+
 				LinkLayerAddress: b[2:8],
 			}
 
@@ -524,9 +464,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			}
 
 			currentOption = &ICMPOptionPrefixInformation{
-				ICMPOptionBase: &ICMPOptionBase{
-					optionType: optionType,
-				},
+
 				PrefixLength:      uint8(b[2]),
 				OnLink:            (b[3]&0x80 > 0),
 				Auto:              (b[3]&0x40 > 0),
@@ -541,9 +479,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			}
 
 			currentOption = &ICMPOptionMTU{
-				ICMPOptionBase: &ICMPOptionBase{
-					optionType: optionType,
-				},
+
 				MTU: binary.BigEndian.Uint32(b[4:8]),
 			}
 
@@ -552,11 +488,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", optionType, optionType, optionLength)
 			}
 
-			currentOption = &ICMPOptionNonce{
-				ICMPOptionBase: &ICMPOptionBase{
-					optionType: optionType,
-				},
-			}
+			currentOption = &ICMPOptionNonce{}
 
 			n := make([]byte, 2)
 			n = append(n, b[2:8]...)
@@ -568,9 +500,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			}
 
 			currentOption = &ICMPOptionRecursiveDNSServer{
-				ICMPOptionBase: &ICMPOptionBase{
-					optionType: optionType,
-				},
+
 				Lifetime: binary.BigEndian.Uint32(b[4:8]),
 			}
 
@@ -587,9 +517,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 			}
 
 			currentOption = &ICMPOptionDNSSearchList{
-				ICMPOptionBase: &ICMPOptionBase{
-					optionType: optionType,
-				},
+
 				Lifetime: binary.BigEndian.Uint32(b[4:8]),
 			}
 

@@ -66,7 +66,7 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 	}
 
 	// add option
-	option := NewICMPOption(ICMPOptionTypeTargetLinkLayerAddress).(*ICMPOptionTargetLinkLayerAddress)
+	option := &ICMPOptionTargetLinkLayerAddress{}
 	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
 	if err != nil {
 		t.Error(err)
@@ -145,7 +145,7 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 	}
 
 	// add option
-	option := NewICMPOption(ICMPOptionTypeSourceLinkLayerAddress).(*ICMPOptionSourceLinkLayerAddress)
+	option := &ICMPOptionSourceLinkLayerAddress{}
 	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
 	if err != nil {
 		t.Error(err)
@@ -192,8 +192,9 @@ func TestICMPNeighborSolicitation(t *testing.T) {
 	}
 
 	// replace options with Nonce option
-	nonce := NewICMPOption(ICMPOptionTypeNonce).(*ICMPOptionNonce)
-	nonce.Nonce = 65766764768057 // 3bd0 84a6 eb39
+	nonce := &ICMPOptionNonce{
+		Nonce: 65766764768057, // 3bd0 84a6 eb39
+	}
 	icmp.Options = []ICMPOption{nonce}
 
 	marshal, err = icmp.Marshal()
@@ -258,7 +259,7 @@ func TestICMPRouterSolicitation(t *testing.T) {
 	}
 
 	// add option
-	option := NewICMPOption(ICMPOptionTypeSourceLinkLayerAddress).(*ICMPOptionSourceLinkLayerAddress)
+	option := &ICMPOptionSourceLinkLayerAddress{}
 	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e5:f6")
 	if err != nil {
 		t.Error(err)
@@ -387,9 +388,13 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	}
 
 	// add RDNSS option
-	dnssOption := NewICMPOption(ICMPOptionTypeRecursiveDNSServer).(*ICMPOptionRecursiveDNSServer)
-	dnssOption.Lifetime = 300
-	dnssOption.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844"), net.ParseIP("2001:4860:4860::8888")}
+	dnssOption := &ICMPOptionRecursiveDNSServer{
+		Lifetime: 300,
+		Servers: []net.IP{
+			net.ParseIP("2001:4860:4860::8844"),
+			net.ParseIP("2001:4860:4860::8888"),
+		},
+	}
 
 	icmp.AddOption(dnssOption)
 
@@ -424,10 +429,10 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	}
 
 	// add DNSSL option
-	dnsslOption := NewICMPOption(ICMPOptionTypeDNSSearchList).(*ICMPOptionDNSSearchList)
-	dnsslOption.Lifetime = 10
-	dnsslOption.DomainNames = []string{"basement.golang.org."}
-
+	dnsslOption := &ICMPOptionDNSSearchList{
+		Lifetime:    10,
+		DomainNames: []string{"basement.golang.org."},
+	}
 	icmp.AddOption(dnsslOption)
 
 	marshal, err = icmp.Marshal()
@@ -441,8 +446,9 @@ func TestICMPRouterAdvertisement(t *testing.T) {
 	}
 
 	// add MTU option
-	mtuOption := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
-	mtuOption.MTU = 1500
+	mtuOption := &ICMPOptionMTU{
+		MTU: 1500,
+	}
 	icmp.AddOption(mtuOption)
 
 	marshal, err = icmp.Marshal()
@@ -509,8 +515,9 @@ func TestChecksum(t *testing.T) {
 	}
 
 	// add MTU option
-	mtuOption := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
-	mtuOption.MTU = 1500
+	mtuOption := &ICMPOptionMTU{
+		MTU: 1500,
+	}
 	msg.AddOption(mtuOption)
 
 	marshal, err = msg.Marshal()
