@@ -7,6 +7,28 @@ import (
 	"testing"
 )
 
+func TestICMPOptionTypeString(t *testing.T) {
+	tests := []struct {
+		in  ICMPOptionType
+		out string
+	}{
+		{0, "<nil>"},
+		{ICMPOptionTypeSourceLinkLayerAddress, "source link-layer address"},
+		{ICMPOptionTypeTargetLinkLayerAddress, "target link-layer address"},
+		{ICMPOptionTypePrefixInformation, "prefix info"},
+		{ICMPOptionTypeMTU, "mtu"},
+		{ICMPOptionTypeNonce, "nonce"},
+		{ICMPOptionTypeRecursiveDNSServer, "rdnss"},
+		{ICMPOptionTypeDNSSearchList, "dnssl"},
+	}
+
+	for _, test := range tests {
+		if strings.Compare(test.in.String(), test.out) != 0 {
+			t.Errorf("expected %s but got %s", test.out, test.in.String())
+		}
+	}
+}
+
 func TestICMPOptionDNSSearchList(t *testing.T) {
 	option := NewICMPOption(ICMPOptionTypeDNSSearchList).(*ICMPOptionDNSSearchList)
 	option.Lifetime = 10
@@ -290,7 +312,7 @@ func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 
-	descfix := "target link-layer Address option (2), length 8 (1): a1:b2:c3:d4:e6:f7"
+	descfix := "target link-layer address option (2), length 8 (1): a1:b2:c3:d4:e6:f7"
 	desc := option.String()
 	if strings.Compare(desc, descfix) != 0 {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)

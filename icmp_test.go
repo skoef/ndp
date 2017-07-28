@@ -84,7 +84,7 @@ func TestICMPNeighborAdvertisement(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 
-	descfix = "neighbor advertisement, length 32, tgt is fe80::1, Flags [router solicited override]\n    target link-layer Address option (2), length 8 (1): a1:b2:c3:d4:e5:f6"
+	descfix = "neighbor advertisement, length 32, tgt is fe80::1, Flags [router solicited override]\n    target link-layer address option (2), length 8 (1): a1:b2:c3:d4:e5:f6"
 	desc = icmp.String()
 	if strings.Compare(desc, descfix) != 0 {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)

@@ -26,38 +26,44 @@ func (opts ICMPOptions) Marshal() ([]byte, error) {
 	return b, nil
 }
 
+// ICMPOptionType describes ICMPv6 types
 type ICMPOptionType int
 
-func (typ ICMPOptionType) String() string {
-	s, ok := icmpOptionTypes[typ]
-	if !ok {
-		return "<nil>"
-	}
-
-	return s
-}
-
+// ICMPv6 Neighbor discovery types as described in RFC4861, RFC3971, RFC6106
 const (
-	ICMPOptionTypeSourceLinkLayerAddress ICMPOptionType = 1
-	ICMPOptionTypeTargetLinkLayerAddress ICMPOptionType = 2
-	ICMPOptionTypePrefixInformation      ICMPOptionType = 3
-	ICMPOptionTypeMTU                    ICMPOptionType = 5
-	ICMPOptionTypeNonce                  ICMPOptionType = 14
-	ICMPOptionTypeRecursiveDNSServer     ICMPOptionType = 25
-	ICMPOptionTypeDNSSearchList          ICMPOptionType = 31
+	_ ICMPOptionType = iota
+	// RFC4861
+	ICMPOptionTypeSourceLinkLayerAddress
+	ICMPOptionTypeTargetLinkLayerAddress
+	ICMPOptionTypePrefixInformation
+	_
+	ICMPOptionTypeMTU
+	// RFC3971
+	ICMPOptionTypeNonce ICMPOptionType = 14
+	// RFC6106
+	ICMPOptionTypeRecursiveDNSServer ICMPOptionType = 25
+	ICMPOptionTypeDNSSearchList      ICMPOptionType = 31
 )
 
-var icmpOptionTypes = map[ICMPOptionType]string{
-	// https://tools.ietf.org/html/rfc4861#section-4.6
-	1: "source link-layer address",
-	2: "target link-layer Address",
-	3: "prefix info",
-	5: "mtu",
-	// https://tools.ietf.org/html/rfc3971#section-5
-	14: "nonce",
-	// https://tools.ietf.org/html/rfc6106#section-5
-	25: "rdnss",
-	31: "dnssl",
+func (t ICMPOptionType) String() string {
+	switch t {
+	case ICMPOptionTypeSourceLinkLayerAddress:
+		return "source link-layer address"
+	case ICMPOptionTypeTargetLinkLayerAddress:
+		return "target link-layer address"
+	case ICMPOptionTypePrefixInformation:
+		return "prefix info"
+	case ICMPOptionTypeMTU:
+		return "mtu"
+	case ICMPOptionTypeNonce:
+		return "nonce"
+	case ICMPOptionTypeRecursiveDNSServer:
+		return "rdnss"
+	case ICMPOptionTypeDNSSearchList:
+		return "dnssl"
+	default:
+		return "<nil>"
+	}
 }
 
 type ICMPOption interface {
@@ -490,7 +496,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 		switch optionType {
 		case ICMPOptionTypeSourceLinkLayerAddress:
 			if optionLength != 1 {
-				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
+				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", optionType, optionType, optionLength)
 			}
 
 			currentOption = &ICMPOptionSourceLinkLayerAddress{
@@ -502,7 +508,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 
 		case ICMPOptionTypeTargetLinkLayerAddress:
 			if optionLength != 1 {
-				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
+				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", optionType, optionType, optionLength)
 			}
 
 			currentOption = &ICMPOptionTargetLinkLayerAddress{
@@ -514,7 +520,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 
 		case ICMPOptionTypePrefixInformation:
 			if optionLength != 4 {
-				return nil, fmt.Errorf("option %s (%d) too short: %d should be 4", icmpOptionTypes[optionType], optionType, optionLength)
+				return nil, fmt.Errorf("option %s (%d) too short: %d should be 4", optionType, optionType, optionLength)
 			}
 
 			currentOption = &ICMPOptionPrefixInformation{
@@ -531,7 +537,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 
 		case ICMPOptionTypeMTU:
 			if optionLength != 1 {
-				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
+				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", optionType, optionType, optionLength)
 			}
 
 			currentOption = &ICMPOptionMTU{
@@ -543,7 +549,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 
 		case ICMPOptionTypeNonce:
 			if optionLength != 1 {
-				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", icmpOptionTypes[optionType], optionType, optionLength)
+				return nil, fmt.Errorf("option %s (%d) too short: %d should be 1", optionType, optionType, optionLength)
 			}
 
 			currentOption = &ICMPOptionNonce{
@@ -558,7 +564,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 
 		case ICMPOptionTypeRecursiveDNSServer:
 			if optionLength < 3 {
-				return nil, fmt.Errorf("option %s (%d) too short: %d should at least be 3", icmpOptionTypes[optionType], optionType, optionLength)
+				return nil, fmt.Errorf("option %s (%d) too short: %d should at least be 3", optionType, optionType, optionLength)
 			}
 
 			currentOption = &ICMPOptionRecursiveDNSServer{
@@ -577,7 +583,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 
 		case ICMPOptionTypeDNSSearchList:
 			if optionLength < 4 {
-				return nil, fmt.Errorf("option %s (%d) too short: %d should at least be 4", icmpOptionTypes[optionType], optionType, optionLength)
+				return nil, fmt.Errorf("option %s (%d) too short: %d should at least be 4", optionType, optionType, optionLength)
 			}
 
 			currentOption = &ICMPOptionDNSSearchList{
@@ -598,7 +604,7 @@ func parseOptions(b []byte) ([]ICMPOption, error) {
 		}
 
 		if optionLength != currentOption.Len() {
-			return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", icmpOptionTypes[optionType], currentOption.Len(), optionLength)
+			return nil, fmt.Errorf("length mismatch while parsing %s: %d should be %d", optionType, currentOption.Len(), optionLength)
 		}
 
 		// add new option to array of options
