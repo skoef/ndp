@@ -7,10 +7,33 @@ import (
 	"testing"
 )
 
+func TestICMPOptionTypeString(t *testing.T) {
+	tests := []struct {
+		in  ICMPOptionType
+		out string
+	}{
+		{0, "<nil>"},
+		{ICMPOptionTypeSourceLinkLayerAddress, "source link-layer address"},
+		{ICMPOptionTypeTargetLinkLayerAddress, "target link-layer address"},
+		{ICMPOptionTypePrefixInformation, "prefix info"},
+		{ICMPOptionTypeMTU, "mtu"},
+		{ICMPOptionTypeNonce, "nonce"},
+		{ICMPOptionTypeRecursiveDNSServer, "rdnss"},
+		{ICMPOptionTypeDNSSearchList, "dnssl"},
+	}
+
+	for _, test := range tests {
+		if strings.Compare(test.in.String(), test.out) != 0 {
+			t.Errorf("expected %s but got %s", test.out, test.in.String())
+		}
+	}
+}
+
 func TestICMPOptionDNSSearchList(t *testing.T) {
-	option := NewICMPOption(ICMPOptionTypeDNSSearchList).(*ICMPOptionDNSSearchList)
-	option.Lifetime = 10
-	option.DomainNames = []string{"basement.golang.org."}
+	option := &ICMPOptionDNSSearchList{
+		Lifetime:    10,
+		DomainNames: []string{"basement.golang.org."},
+	}
 
 	if option.Type() != ICMPOptionTypeDNSSearchList {
 		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeDNSSearchList)
@@ -101,8 +124,9 @@ func TestICMPOptionDNSSearchList(t *testing.T) {
 }
 
 func TestICMPOptionMTU(t *testing.T) {
-	option := NewICMPOption(ICMPOptionTypeMTU).(*ICMPOptionMTU)
-	option.MTU = 1500
+	option := &ICMPOptionMTU{
+		MTU: 1500,
+	}
 
 	if option.Type() != ICMPOptionTypeMTU {
 		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeMTU)
@@ -152,8 +176,9 @@ func TestICMPOptionMTU(t *testing.T) {
 }
 
 func TestICMPOptionNonce(t *testing.T) {
-	option := NewICMPOption(ICMPOptionTypeNonce).(*ICMPOptionNonce)
-	option.Nonce = 65766764768057
+	option := &ICMPOptionNonce{
+		Nonce: 65766764768057,
+	}
 
 	if option.Type() != ICMPOptionTypeNonce {
 		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeNonce)
@@ -209,7 +234,7 @@ func TestICMPOptionNonce(t *testing.T) {
 
 func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
 	var err error
-	option := NewICMPOption(ICMPOptionTypeSourceLinkLayerAddress).(*ICMPOptionSourceLinkLayerAddress)
+	option := &ICMPOptionSourceLinkLayerAddress{}
 	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e6:f7")
 	if err != nil {
 		t.Error(err)
@@ -264,7 +289,7 @@ func TestICMPOptionSourceLinkLayerAddress(t *testing.T) {
 
 func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
 	var err error
-	option := NewICMPOption(ICMPOptionTypeTargetLinkLayerAddress).(*ICMPOptionTargetLinkLayerAddress)
+	option := &ICMPOptionTargetLinkLayerAddress{}
 	option.LinkLayerAddress, err = net.ParseMAC("a1:b2:c3:d4:e6:f7")
 	if err != nil {
 		t.Error(err)
@@ -290,7 +315,7 @@ func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
 		t.Errorf("fixture of %v did not match %v", fixture, marshal)
 	}
 
-	descfix := "target link-layer Address option (2), length 8 (1): a1:b2:c3:d4:e6:f7"
+	descfix := "target link-layer address option (2), length 8 (1): a1:b2:c3:d4:e6:f7"
 	desc := option.String()
 	if strings.Compare(desc, descfix) != 0 {
 		t.Errorf("fixture of '%s' did not match '%s'", descfix, desc)
@@ -318,13 +343,14 @@ func TestICMPOptionTargetLinkLayerAddress(t *testing.T) {
 }
 
 func TestICMPOptionPrefixInformation(t *testing.T) {
-	option := NewICMPOption(ICMPOptionTypePrefixInformation).(*ICMPOptionPrefixInformation)
-	option.PrefixLength = 64
-	option.OnLink = true
-	option.Auto = true
-	option.ValidLifetime = 2592000
-	option.PreferredLifetime = 604800
-	option.Prefix = net.ParseIP("2a00:1450:400e:802::")
+	option := &ICMPOptionPrefixInformation{
+		PrefixLength:      64,
+		OnLink:            true,
+		Auto:              true,
+		ValidLifetime:     2592000,
+		PreferredLifetime: 604800,
+		Prefix:            net.ParseIP("2a00:1450:400e:802::"),
+	}
 
 	if option.Type() != ICMPOptionTypePrefixInformation {
 		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypePrefixInformation)
@@ -374,9 +400,10 @@ func TestICMPOptionPrefixInformation(t *testing.T) {
 }
 
 func TestICMPOptionRecursiveDNSServer(t *testing.T) {
-	option := NewICMPOption(ICMPOptionTypeRecursiveDNSServer).(*ICMPOptionRecursiveDNSServer)
-	option.Lifetime = 300
-	option.Servers = []net.IP{net.ParseIP("2001:4860:4860::8844")}
+	option := &ICMPOptionRecursiveDNSServer{
+		Lifetime: 300,
+		Servers:  []net.IP{net.ParseIP("2001:4860:4860::8844")},
+	}
 
 	if option.Type() != ICMPOptionTypeRecursiveDNSServer {
 		t.Errorf("wrong type: %d instead of %d", option.Type(), ICMPOptionTypeRecursiveDNSServer)
